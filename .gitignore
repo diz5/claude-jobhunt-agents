@@ -1,0 +1,28 @@
+# ── Personal / local-only (NEVER commit) ─────────────────────────────
+# The tooling reads these locally; the public repo only ships generic templates.
+profile.local.md
+.secrets.local
+
+# Job-search data
+job-scoreboard.md
+job-analyses/
+application-kit.md
+
+# Resumes & docs
+*.pdf
+*.docx
+*.doc
+old-resume/
+
+# Local settings & session logs (contain paths + researched companies)
+.claude/settings.local.json
+session-helper/session-info.md
+
+# pipeline-chart skill (has baked-in personal numbers; add back sanitized later)
+.claude/skills/pipeline-chart/
+
+# ── OS / scratch ─────────────────────────────────────────────────────
+.DS_Store
+*.tmp
+*.tmp.*
+scratch/

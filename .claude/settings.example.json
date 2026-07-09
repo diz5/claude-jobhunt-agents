@@ -1,0 +1,13 @@
+{
+  "_comment": "Copy to .claude/settings.local.json (gitignored) and add any domains you research. Generic starting allowlist only — no personal paths, no researched-company domains.",
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(python3 *)",
+      "Edit(job-analyses/**)",
+      "Write(job-analyses/**)",
+      "Edit(job-scoreboard.md)",
+      "Write(job-scoreboard.md)"
+    ]
+  }
+}
