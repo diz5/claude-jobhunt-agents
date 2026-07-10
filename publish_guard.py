@@ -20,7 +20,7 @@ import sys
 
 REQUIRED_IGNORES = [
     "profile.local.md", ".secrets.local", "job-scoreboard.md", "job-analyses/",
-    "application-kit.md", "settings.local.json", "*.pdf", "*.docx",
+    "application-kit.md", ".claude/settings.local.json", "*.pdf", "*.docx",
 ]
 
 GENERIC_PATTERNS = [
@@ -49,6 +49,19 @@ def load_secret_tokens(root):
             if t and not t.startswith("#"):
                 toks.append(t)
     return toks
+
+
+def missing_ignores(root):
+    """Which REQUIRED_IGNORES are NOT actually ignored — checked with real git semantics
+    (git check-ignore), so a glob like *.local.md correctly covers profile.local.md."""
+    probes = {"*.pdf": "sample.pdf", "*.docx": "sample.docx"}
+    missing = []
+    for e in REQUIRED_IGNORES:
+        probe = probes.get(e, e.rstrip("/"))
+        rc = subprocess.run(["git", "-C", root, "check-ignore", "-q", probe]).returncode
+        if rc != 0:  # 0 = ignored, 1 = NOT ignored
+            missing.append(e)
+    return missing
 
 
 def is_example(f):
@@ -88,9 +101,7 @@ def main():
                     continue  # fictional sample email is fine
                 findings.append((f, i, why))
 
-    gi_path = os.path.join(root, ".gitignore")
-    gi = open(gi_path, encoding="utf-8").read() if os.path.exists(gi_path) else ""
-    missing = [e for e in REQUIRED_IGNORES if e not in gi]
+    missing = missing_ignores(root)
 
     print(f"scanned {len(files)} tracked files · secret tokens loaded: {len(tokens)}")
     if missing:

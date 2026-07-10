@@ -1,6 +1,7 @@
 # ── Personal / local-only (NEVER commit) ─────────────────────────────
 # The tooling reads these locally; the public repo only ships generic templates.
-profile.local.md
+# Anything named *.local.md is private (profile, ideas, notes, roadmaps-in-progress).
+*.local.md
 .secrets.local
 
 # Job-search data
