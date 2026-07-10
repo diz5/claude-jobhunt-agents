@@ -55,6 +55,36 @@ and a batch of analyses doesn't block on a full re-sort.
 | `profile.example.md` | Template for your (gitignored) `profile.local.md`. |
 | `examples/` | A fictional sample scoreboard + analysis, so you can see the output shape. |
 
+## Repo layout
+
+```
+claude-jobhunt-agents/
+├── README.md                       # this file
+├── LICENSE                         # MIT
+├── .gitignore                      # keeps all personal data out of git
+├── publish_guard.py                # secret scanner the pre-commit hook runs
+├── profile.example.md              # copy → profile.local.md (gitignored) and fill in
+├── examples/                       # fictional sample output
+│   ├── sample-scoreboard.md
+│   └── Acme-Corp.md
+└── .claude/
+    ├── settings.example.json       # copy → .claude/settings.local.json
+    ├── agents/
+    │   ├── job-analyzer.md          # subagent: research + score one posting
+    │   └── publish-guard.md         # agent: verify repo is safe to publish
+    └── skills/
+        ├── analyze-job/
+        │   ├── SKILL.md             # orchestrator playbook
+        │   └── scoreboard.py        # deterministic scoreboard bookkeeping
+        └── list-sessions/
+            ├── SKILL.md
+            └── list_sessions.py
+```
+
+Personal data is never committed — it lives in gitignored local files:
+`profile.local.md`, `job-scoreboard.md`, `job-analyses/`, `application-kit.md`,
+`.claude/settings.local.json`, `.secrets.local`.
+
 ## Quick start
 
 1. Open this folder in Claude Code.
