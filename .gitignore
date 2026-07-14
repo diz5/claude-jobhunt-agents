@@ -8,6 +8,7 @@
 job-scoreboard.md
 job-analyses/
 application-kit.md
+.board-state.json
 
 # Resumes & docs
 *.pdf
@@ -23,6 +24,8 @@ session-helper/session-info.md
 .claude/skills/pipeline-chart/
 
 # ── OS / scratch ─────────────────────────────────────────────────────
+__pycache__/
+*.pyc
 .DS_Store
 *.tmp
 *.tmp.*

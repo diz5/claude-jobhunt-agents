@@ -32,6 +32,7 @@ This is the "have I already seen/applied to this?" guard. Always run it first.
 - **Multiple new postings at once** — user pasted several jobs / a list → **Step 0 on each**, then run **Batch** (see Mode C) on the ones that aren't duplicates.
 - **Status update** — user says "I applied to X" / "mark X as applied" / "X rejected me" / "got an interview at X" → run **Mode D** (update status only, no re-analysis).
 - **Application question** — user pasted an English question with no new JD → run **Application Answer** about the *most recent posting discussed in this chat*.
+- **Refresh / re-sync** — user says "refresh" / "sync" / "resync" / "刷新" / "重新同步" → run **Mode E** (merge pending, re-read the board from disk, drop stale in-context postings, then only analyze genuinely new jobs from here).
 
 ## Global rules
 
@@ -41,6 +42,7 @@ This is the "have I already seen/applied to this?" guard. Always run it first.
 - Use WebSearch/WebFetch for anything not in the posting (company financials, funding, Glassdoor, cost-of-living, comp bands). No MCP required.
 - **Never dump `job-scoreboard.md` contents in chat** — no full table, no row diffs, no code blocks of the edits. Confirm in one short line only.
 - **Don't imply it's safe to leave while subagents are running.** If `job-analyzer` work is in flight and the user signals they're about to exit/close the session, warn them one line first (e.g. "还有 N 个分析子代理在跑，退出会中断它们——建议等它们返回再退"). (This is a warning only — Claude Code cannot technically block a user from exiting; the workflow is interruption-safe regardless: files write incrementally, `_pending.md` is append-only, the flush is idempotent, so the next session recovers cleanly.)
+- **推荐分 < 6 = 直接跳过，不入榜（硬门槛）。** 低于候选人门槛的岗位不进 `job-scoreboard.md`。`scoreboard.py` 的 `append`/`flush` 会自动丢弃 <6 的行（你无需手动过滤，但也别指望能把 <6 塞进榜单）。Mode A/C 里若分析结果 <6：照常把 ⭐ 报告呈现给用户（让他看到为什么低），但**不要** stage 该行——用一句话说明"X 分 < 6，未入榜"。历史遗留的 <6 行用 `scoreboard.py prune` 清理。
 - **Never hand-edit `job-scoreboard.md` or `job-analyses/_pending.md` with the Edit/Write tools** — a main-agent file edit renders a noisy diff in chat, and manual re-sorting/re-numbering is error-prone. Do ALL board/buffer changes through the deterministic script **`python3 .claude/skills/analyze-job/scoreboard.py`** (ops: `append` / `flush` / `status` / `refresh` / `remove` / `check`). It's exact, atomic, and shows only its one-line stdout — no diff. (This replaced the old `scoreboard-keeper` LLM subagent: mechanical bookkeeping is a job for code, not an LLM — code doesn't hallucinate, doesn't race, and finishes in <1s.) Analysis files (`job-analyses/<Company>.md`) are still written by the `job-analyzer` subagent. So: **LLM does the thinking (job-analyzer); the script does the bookkeeping (scoreboard.py); the main agent orchestrates and talks.**
 
 ## Mode A — Full Analysis
@@ -75,7 +77,7 @@ Hard rules for the template:
 ### Do the analysis via a subagent (so no file diffs hit the chat)
 Run **one `job-analyzer` subagent** for the single job. It writes `job-analyses/<Company>.md` itself and returns the full 中文 report **plus** a final scoreboard row line. Then:
 1. **Relay the report** to the user (that's the content he wants to read).
-2. **Stage the row**: write the returned row line to a temp file and run `python3 .claude/skills/analyze-job/scoreboard.py append --rows-file <tmp>` (it appends to `_pending.md`). Don't touch `job-scoreboard.md` directly.
+2. **Stage the row — unless 推荐分 < 6.** If the score is below 6, do NOT stage it (the job is below the candidate's bar); just relay the report and add one line: "X 分 < 6，未入榜". Otherwise write the returned row line to a temp file and run `python3 .claude/skills/analyze-job/scoreboard.py append --rows-file <tmp>` (it appends to `_pending.md`, and it will itself drop the row if <6 as a safety net). Don't touch `job-scoreboard.md` directly.
    - **状态 defaults to 已投** — the candidate applies to a job first, THEN asks for analysis, so assume already applied UNLESS they say they haven't (then `未投`). The `job-analyzer` sets this in the row.
    - The buffer is merged + re-sorted into the board at the next session's Step 0a flush — this decouples analysis from the scoreboard rewrite and keeps concurrent sessions from clobbering the board.
    - **Exception — refreshing an existing row** (Step 0 dedup, user chose "refresh"): run `scoreboard.py refresh --row "<new row>"` (matched by 公司+岗位; preserves 状态). Don't route a refresh through the buffer.
@@ -85,8 +87,8 @@ Run **one `job-analyzer` subagent** for the single job. It writes `job-analyses/
 When the user pastes more than one job at once:
 1. **Fan out**: spawn one `job-analyzer` subagent per job **in parallel** (one Agent call each, in a single message). Give each the company + role + JD text/URL.
 2. Each subagent researches, writes its own `job-analyses/<Company>.md`, and returns a scoreboard row.
-3. **Stage in one write**: collect all returned rows into one temp file, then run a **single** `python3 .claude/skills/analyze-job/scoreboard.py append --rows-file <tmp>` to append them all to `_pending.md`. (One atomic append, no races.) The actual re-sort happens at the next session's Step 0a flush.
-4. Report a short summary in chat: each new company with its 推荐分 and one-liner (from its returned row). Note they're staged and will land in the ranking at next session start.
+3. **Stage in one write**: collect the returned rows into one temp file, then run a **single** `python3 .claude/skills/analyze-job/scoreboard.py append --rows-file <tmp>` to append them to `_pending.md`. (One atomic append, no races.) `append` **auto-drops any row scoring < 6** and reports which — you don't need to pre-filter, but do call out the dropped ones. The actual re-sort happens at the next session's Step 0a flush.
+4. Report a short summary in chat: each new company with its 推荐分 and one-liner (from its returned row). Separate the **入榜 (≥6)** ones from any **未入榜 (<6)** ones so the user sees what was skipped. Note the ≥6 ones are staged and will land in the ranking at next session start.
 
 **状态 in batch:** all newly-analyzed rows default to **已投** (see rule above). If the user says some of the batch aren't applied yet, mark ONLY those as `未投` — ask which ones if it's ambiguous.
 
@@ -120,3 +122,16 @@ After the answer, add a **one-line** Chinese note "为什么这样答" — just 
 - **Fixed questions** (work auth / sponsorship / notice / W2 / expected salary / relocation / why-leaving / referral) → reuse section A directly (salary follows its per-role rule). Don't re-improvise these.
 - **Open-ended questions** → pull ONE most-relevant item from section B (story bank) and build on it, so answers stay grounded and consistent. Anything marked `⚠️需确认` — confirm with the candidate before submitting.
 - **Save it**: after the candidate approves a tailored per-company answer, append it to that company's `job-analyses/<Company>.md` under a `## 申请回答` heading (question + final answer), so approved answers live with the analysis and can be reused/adapted. (This save is a file edit — route it through the `job-analyzer` subagent, or do it once they confirm; per-company answers are NOT added to `application-kit.md`, which stays reusable-only.)
+
+## Mode E — Refresh / Re-sync (for a long-running session)
+
+**Why this exists:** a session that has been open a while holds a *stale* mental copy of the board and of the jobs pasted earlier this chat. Meanwhile another session may have flushed new rows to `job-scoreboard.md`, or the buffer may have merged. Without a reset, this session keeps reasoning off its in-context memory (e.g. re-summarizing yesterday's posting) instead of the real current board. "Refresh" forces a clean re-sync.
+
+When the user says **refresh / sync / resync / 刷新 / 重新同步**, do exactly this:
+
+1. **Merge + re-read from disk.** Run `python3 .claude/skills/analyze-job/scoreboard.py flush --date <today>` (merges any staged rows; idempotent — safe even if another session already flushed). Then run `python3 .claude/skills/analyze-job/scoreboard.py state` to read the authoritative marker (`last_updated`, `last_op`, `rows`, `pending_rows`). Then **re-Read `job-scoreboard.md` fresh** — do not trust the copy in your context.
+2. **Reset the working set. This is the whole point:** from this moment, the freshly-read board is the *single source of truth*. **Discard your in-context memory of any job postings pasted earlier in this chat** — anything already on the board (or already merged) is DONE; do not re-analyze, re-summarize, or reason about it from memory. If the user later refers to one, re-Read its `job-analyses/<Company>.md` rather than recalling it.
+3. **Continue with new jobs only.** After the refresh, treat only *genuinely new* postings the user provides (not already on the board per Step 0 dedup) as work to analyze.
+4. **Confirm in one line**, e.g. `🔄 已重新同步：榜单 N 行（更新于 <last_updated>），暂存区已并入。从现在起只分析新岗位。` No board dump.
+
+Track `last_updated` from the `state` call in your context; if you run `state` again later and it changed, another session moved the board — re-Read it before reporting board facts.

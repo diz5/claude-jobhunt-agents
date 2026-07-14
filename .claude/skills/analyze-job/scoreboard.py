@@ -14,15 +14,21 @@ Row shape (9 cells):
   | 排名 | **公司** | 岗位 (地点) | 状态 | **推荐分** | 适配 | 薪资 | 风险 | 一句话 |
 
 Ops:
-  append   --rows-file F | (stdin)     append row line(s) to _pending.md
-  flush    [--date YYYY-MM-DD]         merge _pending -> board, re-sort, renumber, clear buffer
+  append   --rows-file F | (stdin)     append row line(s) to _pending.md (drops 推荐分 < 6)
+  flush    [--date YYYY-MM-DD]         merge _pending -> board, re-sort, renumber, clear buffer (drops 推荐分 < 6)
   status   --company C --role R --set S   set one posting's 状态 (board or pending)
   refresh  --row "<full row>"          replace one existing posting's row (matched by 公司+岗位)
+  prune    [--min N] [--date ...]      remove board rows scoring < N (default 6) — clear sub-cutoff jobs
   check                                read-only: duplicates / sort / count sanity
+
+Cutoff rule: a job scoring below MIN_SCORE (6) is below the candidate's bar and is NOT
+tracked on the board — append/flush drop it, prune clears any that predate the rule.
 
 Identity of a posting = 公司 + 岗位 (never 公司 alone) — same company's different roles coexist.
 """
 import argparse
+import datetime
+import json
 import os
 import re
 import sys
@@ -31,8 +37,11 @@ import tempfile
 ROOT = os.path.dirname(os.path.abspath(os.path.join(__file__, "..", "..", "..")))
 BOARD = os.path.join(ROOT, "job-scoreboard.md")
 PENDING = os.path.join(ROOT, "job-analyses", "_pending.md")
+STATE = os.path.join(ROOT, ".board-state.json")  # tiny sidecar: last merge time + counts (gitignored)
 
 SCORE_RE = re.compile(r"\*\*([0-9]+(?:\.[0-9]+)?)\*\*")
+
+MIN_SCORE = 6.0  # 推荐分 < 6 = below the candidate's bar -> never boarded (append/flush drop it, prune clears it)
 
 def read(path):
     with open(path, encoding="utf-8") as f:
@@ -101,6 +110,24 @@ def update_date(lines, date):
     return [re.sub(r"(_更新于\s*)\d{4}-\d{2}-\d{2}(_)", rf"\g<1>{date}\g<2>", l)
             if "更新于" in l else l for l in lines]
 
+def board_counts():
+    """(#rows on the board, #rows staged in _pending) — cheap, for the state marker."""
+    board = read(BOARD) if os.path.exists(BOARD) else []
+    pend = read(PENDING) if os.path.exists(PENDING) else []
+    return sum(1 for l in board if is_row(l)), sum(1 for l in pend if is_row(l))
+
+def stamp_state(last_op):
+    """Write .board-state.json after any mutation so a running session can compare a
+    timestamp/count and know the board moved (e.g. another session flushed) — see the
+    Refresh mode in SKILL.md. Best-effort: never let a state-write failure break the op."""
+    try:
+        rows, pending = board_counts()
+        state = {"last_updated": datetime.datetime.now().isoformat(timespec="seconds"),
+                 "last_op": last_op, "rows": rows, "pending_rows": pending}
+        write_atomic(STATE, [json.dumps(state, ensure_ascii=False, indent=2) + "\n"])
+    except Exception as e:
+        print(f"(warning: could not write {os.path.basename(STATE)}: {e})", file=sys.stderr)
+
 # ---------- ops ----------
 
 def op_append(args):
@@ -112,9 +139,22 @@ def op_append(args):
     if not new:
         print("no valid row lines to append")
         return
+    kept, low = [], []
+    for l in new:
+        if is_row(l) and score_of(l) < MIN_SCORE:
+            low.append(cells(l)[2].replace("*", "").strip())
+        else:
+            kept.append(l)
+    if not kept:
+        print(f"nothing appended — all {len(low)} row(s) below cutoff {MIN_SCORE}: {low}")
+        return
     pend = read(PENDING)
-    write_atomic(PENDING, pend + new)
-    print(f"appended {len(new)} row(s) to _pending.md")
+    write_atomic(PENDING, pend + kept)
+    stamp_state("append")
+    msg = f"appended {len(kept)} row(s) to _pending.md"
+    if low:
+        msg += f"; skipped {len(low)} below {MIN_SCORE}: {low}"
+    print(msg)
 
 def op_flush(args):
     pend = read(PENDING)
@@ -124,9 +164,12 @@ def op_flush(args):
         return
     board = read(BOARD)
     existing = {key(l) for l in board if is_row(l)}
-    merged, skipped = [], []
+    merged, skipped, low = [], [], []
     seen = set()
     for l in pend_rows:
+        if score_of(l) < MIN_SCORE:              # below the candidate's bar -> never boarded
+            low.append(cells(l)[2].replace("*", "").strip())
+            continue
         k = key(l)
         if k in existing or k in seen:          # exact same 公司+岗位 already there -> dup
             skipped.append(cells(l)[2].replace("*", "").strip())
@@ -142,9 +185,12 @@ def op_flush(args):
     write_atomic(BOARD, board)
     # clear pending -> keep only the non-row (comment header) lines
     write_atomic(PENDING, [l for l in pend if not is_row(l)])
+    stamp_state("flush")
     msg = f"merged {len(merged)}; board total = {total}"
     if skipped:
         msg += f"; skipped dup: {skipped}"
+    if low:
+        msg += f"; skipped <{MIN_SCORE}: {low}"
     print(msg)
 
 def _find(lines, company, role):
@@ -163,6 +209,7 @@ def op_status(args):
             if path == BOARD:
                 lines = update_date(lines, args.date)
             write_atomic(path, lines)
+            stamp_state("status")
             print(f"set 状态 = {args.set} for {args.company} / {args.role}  (in {os.path.basename(path)})")
             return
         if len(hits) > 1:
@@ -189,6 +236,7 @@ def op_refresh(args):
     board = set_count(board, total)
     board = update_date(board, args.date)
     write_atomic(BOARD, board)
+    stamp_state("refresh")
     print(f"refreshed {company.strip()} / {role.strip()} (状态 preserved)")
 
 def op_remove(args):
@@ -203,7 +251,35 @@ def op_remove(args):
     board = set_count(board, total)
     board = update_date(board, args.date)
     write_atomic(BOARD, board)
+    stamp_state("remove")
     print(f"removed {len(hits)} row(s) for {args.company} / {args.role}; board total = {total}")
+
+def op_prune(args):
+    thr = args.min if args.min is not None else MIN_SCORE
+    board = read(BOARD)
+    victims = [i for i, l in enumerate(board) if is_row(l) and score_of(l) < thr]
+    if not victims:
+        print(f"no rows below {thr} — nothing to prune")
+        return
+    names = [f"{cells(board[i])[2].replace('*','').strip()} ({score_of(board[i])})" for i in victims]
+    for i in sorted(victims, reverse=True):
+        del board[i]
+    total = renumber_and_sort(board)
+    board = set_count(board, total)
+    board = update_date(board, args.date)
+    write_atomic(BOARD, board)
+    stamp_state("prune")
+    print(f"pruned {len(victims)} row(s) below {thr}; board total = {total}")
+    print("  removed: " + ", ".join(names))
+
+def op_state(args):
+    if os.path.exists(STATE):
+        with open(STATE, encoding="utf-8") as f:
+            sys.stdout.write(f.read())
+    else:
+        rows, pending = board_counts()
+        print(json.dumps({"last_updated": None, "last_op": None,
+                          "rows": rows, "pending_rows": pending}, ensure_ascii=False))
 
 def op_check(args):
     board = read(BOARD)
@@ -245,6 +321,9 @@ def main():
     rm = sub.add_parser("remove")
     rm.add_argument("--company", required=True); rm.add_argument("--role", required=True)
     rm.add_argument("--date"); rm.set_defaults(fn=op_remove)
+    pr = sub.add_parser("prune"); pr.add_argument("--min", type=float)
+    pr.add_argument("--date"); pr.set_defaults(fn=op_prune)
+    st = sub.add_parser("state"); st.set_defaults(fn=op_state)
     c = sub.add_parser("check"); c.set_defaults(fn=op_check)
 
     args = p.parse_args()

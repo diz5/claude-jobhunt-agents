@@ -62,3 +62,5 @@ Leave `排名` blank (re-ranked later) and set `状态` to **已投** (the candi
 `|  | **Speak** | Sr Backend/Full-stack (SF/远程?) | 已投 | **7.5** | 7.5 | 远程优/SF平 | 中低 | OpenAI 投资 $1B 独角兽，后端+LLM 契合；栈非 Java，需确认远程 |`
 
 Keep 薪资/风险 terse (优/平/购买力↓/倒退; 低/中低/中/中高). Add `*` after 薪资 if undisclosed.
+
+**Cutoff (推荐分 < 6):** the candidate does not track jobs scoring below 6. Still score honestly and still return the full ⭐ report (so the candidate sees *why* it's a pass) and the `SCOREBOARD_ROW:` line — the orchestrator/scoreboard will drop the row from the board automatically. In the 推荐分 verdict line, state plainly it's below the bar (e.g. "低于 6 分门槛，不建议投/不入榜"). Do not inflate a score to clear the cutoff.
