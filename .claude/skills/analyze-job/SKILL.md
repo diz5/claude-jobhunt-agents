@@ -43,7 +43,8 @@ This is the "have I already seen/applied to this?" guard. Always run it first.
 - **Never dump `job-scoreboard.md` contents in chat** — no full table, no row diffs, no code blocks of the edits. Confirm in one short line only.
 - **Don't imply it's safe to leave while subagents are running.** If `job-analyzer` work is in flight and the user signals they're about to exit/close the session, warn them one line first (e.g. "还有 N 个分析子代理在跑，退出会中断它们——建议等它们返回再退"). (This is a warning only — Claude Code cannot technically block a user from exiting; the workflow is interruption-safe regardless: files write incrementally, `_pending.md` is append-only, the flush is idempotent, so the next session recovers cleanly.)
 - **推荐分 < 6 = 直接跳过，不入榜（硬门槛）。** 低于候选人门槛的岗位不进 `job-scoreboard.md`。`scoreboard.py` 的 `append`/`flush` 会自动丢弃 <6 的行（你无需手动过滤，但也别指望能把 <6 塞进榜单）。Mode A/C 里若分析结果 <6：照常把 ⭐ 报告呈现给用户（让他看到为什么低），但**不要** stage 该行——用一句话说明"X 分 < 6，未入榜"。历史遗留的 <6 行用 `scoreboard.py prune` 清理。
-- **Never hand-edit `job-scoreboard.md` or `job-analyses/_pending.md` with the Edit/Write tools** — a main-agent file edit renders a noisy diff in chat, and manual re-sorting/re-numbering is error-prone. Do ALL board/buffer changes through the deterministic script **`python3 .claude/skills/analyze-job/scoreboard.py`** (ops: `append` / `flush` / `status` / `refresh` / `remove` / `check`). It's exact, atomic, and shows only its one-line stdout — no diff. (This replaced the old `scoreboard-keeper` LLM subagent: mechanical bookkeeping is a job for code, not an LLM — code doesn't hallucinate, doesn't race, and finishes in <1s.) Analysis files (`job-analyses/<Company>.md`) are still written by the `job-analyzer` subagent. So: **LLM does the thinking (job-analyzer); the script does the bookkeeping (scoreboard.py); the main agent orchestrates and talks.**
+- **Never touch `job-scoreboard.md` or `job-analyses/_pending.md` with the Edit/Write tools — not even one line.** A main-agent file edit renders a noisy `Update(...)` diff in chat (which the candidate does NOT want to see) and bypasses the min-score gate, dedup, and re-numbering. Do ALL board/buffer changes through the deterministic script **`python3 .claude/skills/analyze-job/scoreboard.py`** (ops: `append` / `flush` / `status` / `refresh` / `remove` / `prune` / `state` / `check`) — it prints only one line of stdout, no diff.
+  - **No placeholder/"分析中"/PENDING rows in the buffer, ever.** Each job yields **exactly one complete, scored row**, appended via `scoreboard.py append` **only after** its 推荐分 is known. A row without a numeric 推荐分 is never staged. Show in-progress status in chat text only ("正在分析 Microsoft MAI…"), never by writing a partial row to `_pending.md`. It's exact, atomic, and shows only its one-line stdout — no diff. (This replaced the old `scoreboard-keeper` LLM subagent: mechanical bookkeeping is a job for code, not an LLM — code doesn't hallucinate, doesn't race, and finishes in <1s.) Analysis files (`job-analyses/<Company>.md`) are still written by the `job-analyzer` subagent. So: **LLM does the thinking (job-analyzer); the script does the bookkeeping (scoreboard.py); the main agent orchestrates and talks.**
 
 ## Mode A — Full Analysis
 
@@ -100,28 +101,15 @@ When the user reports an application-status change (applied / interviewing / rej
 
 ## Mode B — Application Answer
 
-The submittable answer is **English**, and it must read like a real engineer typed it in a hurry — NOT like a cover-letter generator. The candidate's #1 complaint: answers are too long and too AI-ish. Follow these hard rules.
+Delegate the drafting to the **`application-answerer`** subagent — it reads the job analysis for background, grounds the answer in `profile.local.md` + `application-kit.md`, and writes in the house style (short, human, one concrete resume specific, no AI-tells). Running it as a subagent keeps the multi-file reading and any save-edit out of the chat.
 
-**Length — short by default.**
-- Match the box: if it's a text field, aim **2–4 sentences (~40–90 words)**. Only go longer if the question explicitly asks (e.g. "describe in detail") or gives a big word budget.
-- If the form states a word/char limit, obey it exactly.
-- One concrete point beats three vague ones. Don't cover everything — pick the single most relevant thing and say it well.
+**Flow:**
+1. **Spawn `application-answerer`** with the **company + role + the exact question text** (include any word/char limit, and the JD/URL if handy). One subagent per company; it can handle several questions for that company in one call. If the user just pasted a bare question, infer the company from the *most recent posting discussed in this chat* and pass it.
+2. **Relay its answer(s) verbatim** — the English answer (submittable) + the one-line 为什么这样答.
+3. **Iterate in the main chat** for tweaks ("shorter", "swap the story") — adjust directly or re-spawn; don't over-round-trip.
+4. **Save on approval**: once the candidate approves a tailored answer, re-invoke `application-answerer` telling it the answer is **APPROVED** — it appends `Q/A` to that company's `job-analyses/<Company>.md` under `## 申请回答` (off-chat, no diff). Per-company answers do NOT go into `application-kit.md` (reusable-only); a genuinely reusable new fixed line does.
 
-**Voice — plain and human.**
-- First person, direct, contractions OK ("I've", "it's"). Say it the way you'd say it out loud to a hiring manager.
-- Lead with the substance, not a warm-up. **No throat-clearing openers** ("I'm excited about…", "I'm passionate about…", "What draws me to…").
-- Use a real specific from his resume — a number, a system, a concrete problem — instead of adjectives. Show, don't gush.
-
-**Banned AI-tells** (do not use): leverage, spearheaded, passionate, thrilled, excited to, deeply resonate(s), "at the intersection of", "uniquely positioned", robust, seamless(ly), elevate, unlock, world-class, cutting-edge, "I'd love the opportunity to", em-dash-triads, and rows of buzzword adjectives. If a sentence would survive on any company's application, it's too generic — make it specific to THIS role.
-
-**Grounding.** Anchor in the candidate's real experience — use the story bank in `profile.local.md` (and `application-kit.md`). If they genuinely lack something the question probes, say so plainly in one clause rather than inflating.
-
-After the answer, add a **one-line** Chinese note "为什么这样答" — just the framing choice, not a paragraph.
-
-**Use the answer kit.** Before writing, read `application-kit.md`:
-- **Fixed questions** (work auth / sponsorship / notice / W2 / expected salary / relocation / why-leaving / referral) → reuse section A directly (salary follows its per-role rule). Don't re-improvise these.
-- **Open-ended questions** → pull ONE most-relevant item from section B (story bank) and build on it, so answers stay grounded and consistent. Anything marked `⚠️需确认` — confirm with the candidate before submitting.
-- **Save it**: after the candidate approves a tailored per-company answer, append it to that company's `job-analyses/<Company>.md` under a `## 申请回答` heading (question + final answer), so approved answers live with the analysis and can be reused/adapted. (This save is a file edit — route it through the `job-analyzer` subagent, or do it once they confirm; per-company answers are NOT added to `application-kit.md`, which stays reusable-only.)
+**Non-negotiables** (the agent enforces these; hold it to them when relaying): 2–4 sentences / ~40–90 words by default (one word/line for gating questions like salary-in-range, W2, sponsorship); first person + contractions; lead with substance, no throat-clearing; **one real resume specific** (a number/system) instead of adjectives; obey any stated limit; salary follows the kit's per-role rule (never a raw guessed number); never negative about the current employer; flag `⚠️需确认` items. If a sentence would survive on any company's application, it's too generic.
 
 ## Mode E — Refresh / Re-sync (for a long-running session)
 

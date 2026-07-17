@@ -21,6 +21,8 @@ Paste a job description (or a company + role). The system:
 4. **Files** it: one analysis per posting, plus a one-line row appended to a ranked scoreboard.
 5. Handles **application questions** (short, human answers grounded in your real story bank)
    and **status tracking** (applied / interviewing / offer).
+6. **Preps you for the interview** — generates a tailored recruiter/HR phone-screen prep pack and
+   runs interactive mock screens (see [`examples/Acme-Corp-interview.md`](examples/Acme-Corp-interview.md)).
 
 ## Architecture
 
@@ -28,7 +30,10 @@ Paste a job description (or a company + role). The system:
 🧠 main agent (orchestrator)         reads the skill, delegates, talks to you
 ├── 📖 analyze-job (skill)           the playbook: dedup, analyze, batch, answer, status
 ├── 👷 job-analyzer (subagent)       JUDGMENT: research + score one posting (runs in parallel)
-├── ⚙️ scoreboard.py (script)        MECHANICAL: append / flush / status / refresh / remove / check
+├── ✍️ application-answerer (agent)  JUDGMENT: draft a job-application answer from the analysis + profile
+├── ⚙️ scoreboard.py (script)        MECHANICAL: append / flush / status / refresh / remove / prune / state / check
+├── 🎤 interview-prep (skill)        the playbook: recruiter-screen mock (interactive) + prep pack
+├── 📝 interview-prep-writer (agent) JUDGMENT: research + write one company's recruiter-screen pack
 └── 🛡️ publish-guard (agent+script)  verifies no personal data before you publish
 ```
 
@@ -49,7 +54,10 @@ and a batch of analyses doesn't block on a full re-sort.
 | `.claude/skills/analyze-job/SKILL.md` | The orchestrator playbook (analyze / batch / application-answer / status modes). |
 | `.claude/skills/analyze-job/scoreboard.py` | Deterministic scoreboard bookkeeping (CLI: `flush`/`append`/`status`/`refresh`/`remove`/`check`). |
 | `.claude/agents/job-analyzer.md` | Subagent that researches + scores one posting and returns a ⭐ report + scoreboard row. |
+| `.claude/agents/application-answerer.md` | Subagent that drafts a job-application answer, grounded in the saved analysis + your profile/kit. |
 | `.claude/agents/publish-guard.md` | Read-only agent that verifies the repo is safe to publish. |
+| `.claude/skills/interview-prep/SKILL.md` | Recruiter/HR-screen playbook: interactive mock screen + prep-pack generation. |
+| `.claude/agents/interview-prep-writer.md` | Subagent that researches + writes one company's recruiter-screen prep pack. |
 | `.claude/skills/list-sessions/` | Utility skill: list past Claude Code sessions for the project. |
 | `publish_guard.py` | The deterministic secret scanner the guard agent runs. |
 | `profile.example.md` | Template for your (gitignored) `profile.local.md`. |
@@ -66,16 +74,21 @@ claude-jobhunt-agents/
 ├── profile.example.md              # copy → profile.local.md (gitignored) and fill in
 ├── examples/                       # fictional sample output
 │   ├── sample-scoreboard.md
-│   └── Acme-Corp.md
+│   ├── Acme-Corp.md
+│   └── Acme-Corp-interview.md      # sample recruiter-screen prep pack
 └── .claude/
     ├── settings.example.json       # copy → .claude/settings.local.json
     ├── agents/
     │   ├── job-analyzer.md          # subagent: research + score one posting
+    │   ├── application-answerer.md  # subagent: draft a job-application answer
+    │   ├── interview-prep-writer.md # subagent: write one company's recruiter-screen pack
     │   └── publish-guard.md         # agent: verify repo is safe to publish
     └── skills/
         ├── analyze-job/
         │   ├── SKILL.md             # orchestrator playbook
         │   └── scoreboard.py        # deterministic scoreboard bookkeeping
+        ├── interview-prep/
+        │   └── SKILL.md             # recruiter-screen mock + prep-pack playbook
         └── list-sessions/
             ├── SKILL.md
             └── list_sessions.py
