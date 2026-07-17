@@ -51,8 +51,8 @@ and a batch of analyses doesn't block on a full re-sort.
 
 | Path | What it is |
 |---|---|
-| `.claude/skills/analyze-job/SKILL.md` | The orchestrator playbook (analyze / batch / application-answer / status modes). |
-| `.claude/skills/analyze-job/scoreboard.py` | Deterministic scoreboard bookkeeping (CLI: `flush`/`append`/`status`/`refresh`/`remove`/`check`). |
+| `.claude/skills/analyze-job/SKILL.md` | The orchestrator playbook (analyze / batch / application-answer / status / refresh modes). |
+| `.claude/skills/analyze-job/scoreboard.py` | Deterministic scoreboard bookkeeping (CLI: `append`/`flush`/`status`/`refresh`/`remove`/`prune`/`state`/`check`). |
 | `.claude/agents/job-analyzer.md` | Subagent that researches + scores one posting and returns a ⭐ report + scoreboard row. |
 | `.claude/agents/application-answerer.md` | Subagent that drafts a job-application answer, grounded in the saved analysis + your profile/kit. |
 | `.claude/agents/publish-guard.md` | Read-only agent that verifies the repo is safe to publish. |
@@ -61,7 +61,7 @@ and a batch of analyses doesn't block on a full re-sort.
 | `.claude/skills/list-sessions/` | Utility skill: list past Claude Code sessions for the project. |
 | `publish_guard.py` | The deterministic secret scanner the guard agent runs. |
 | `profile.example.md` | Template for your (gitignored) `profile.local.md`. |
-| `examples/` | A fictional sample scoreboard + analysis, so you can see the output shape. |
+| `examples/` | Fictional sample output — a scoreboard, a job analysis, and a recruiter-screen prep pack — so you can see the output shapes. |
 
 ## Repo layout
 
