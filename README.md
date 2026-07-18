@@ -34,7 +34,8 @@ Paste a job description (or a company + role). The system:
 ├── ⚙️ scoreboard.py (script)        MECHANICAL: append / flush / status / refresh / remove / prune / state / check
 ├── 🎤 interview-prep (skill)        the playbook: recruiter-screen mock (interactive) + prep pack
 ├── 📝 interview-prep-writer (agent) JUDGMENT: research + write one company's recruiter-screen pack
-└── 🛡️ publish-guard (agent+script)  verifies no personal data before you publish
+├── 🛡️ publish-guard (agent+script)  verifies no personal data before you publish
+└── 📐 design-doc-writer (agent)     keeps docs/design.html in sync with the tooling (low-cost)
 ```
 
 **Design principle — LLM for judgment, code for mechanics.** Research and scoring need
@@ -58,9 +59,12 @@ and a batch of analyses doesn't block on a full re-sort.
 | `.claude/agents/publish-guard.md` | Read-only agent that verifies the repo is safe to publish. |
 | `.claude/skills/interview-prep/SKILL.md` | Recruiter/HR-screen playbook: interactive mock screen + prep-pack generation. |
 | `.claude/agents/interview-prep-writer.md` | Subagent that researches + writes one company's recruiter-screen prep pack. |
+| `.claude/agents/design-doc-writer.md` | Low-cost agent that keeps `docs/design.html` in sync with the tooling (surgical edits). |
 | `.claude/skills/list-sessions/` | Utility skill: list past Claude Code sessions for the project. |
 | `publish_guard.py` | The deterministic secret scanner the guard agent runs. |
 | `profile.example.md` | Template for your (gitignored) `profile.local.md`. |
+| `application-kit.example.md` | Template for your (gitignored) `application-kit.md` — fixed answers + story bank. |
+| `docs/design.html` | Self-contained architecture/design page (open in a browser, or serve via GitHub Pages). |
 | `examples/` | Fictional sample output — a scoreboard, a job analysis, and a recruiter-screen prep pack — so you can see the output shapes. |
 
 ## Repo layout
@@ -72,6 +76,9 @@ claude-jobhunt-agents/
 ├── .gitignore                      # keeps all personal data out of git
 ├── publish_guard.py                # secret scanner the pre-commit hook runs
 ├── profile.example.md              # copy → profile.local.md (gitignored) and fill in
+├── application-kit.example.md      # copy → application-kit.md (gitignored) and fill in
+├── docs/
+│   └── design.html                 # self-contained architecture/design page
 ├── examples/                       # fictional sample output
 │   ├── sample-scoreboard.md
 │   ├── Acme-Corp.md
@@ -82,7 +89,8 @@ claude-jobhunt-agents/
     │   ├── job-analyzer.md          # subagent: research + score one posting
     │   ├── application-answerer.md  # subagent: draft a job-application answer
     │   ├── interview-prep-writer.md # subagent: write one company's recruiter-screen pack
-    │   └── publish-guard.md         # agent: verify repo is safe to publish
+    │   ├── publish-guard.md         # agent: verify repo is safe to publish
+    │   └── design-doc-writer.md     # agent: keep docs/design.html in sync
     └── skills/
         ├── analyze-job/
         │   ├── SKILL.md             # orchestrator playbook
@@ -102,9 +110,10 @@ Personal data is never committed — it lives in gitignored local files:
 
 1. Open this folder in Claude Code.
 2. `cp profile.example.md profile.local.md` and fill in your real profile (it's gitignored).
-3. `cp .claude/settings.example.json .claude/settings.local.json`.
-4. Paste a job description in chat → the `analyze-job` skill runs and files the analysis.
-5. Run `python3 .claude/skills/analyze-job/scoreboard.py check` any time to sanity-check the board.
+3. `cp application-kit.example.md application-kit.md` and fill in your reusable answers (gitignored).
+4. `cp .claude/settings.example.json .claude/settings.local.json`.
+5. Paste a job description in chat → the `analyze-job` skill runs and files the analysis.
+6. Run `python3 .claude/skills/analyze-job/scoreboard.py check` any time to sanity-check the board.
 
 ## Privacy
 

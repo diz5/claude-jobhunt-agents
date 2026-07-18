@@ -1,0 +1,381 @@
+<title>claude-jobhunt-agents — system design</title>
+<style>
+  :root,
+  :root[data-theme="light"] {
+    --paper: #f5f4f1;
+    --surface: #ffffff;
+    --surface-2: #eeece6;
+    --ink: #1d2230;
+    --ink-soft: #3a4152;
+    --muted: #5f6675;
+    --line: #e2dfd7;
+    --line-strong: #cfcabf;
+    --public: #0e8f83;
+    --public-ink: #0a6b62;
+    --public-soft: #e3f1ef;
+    --private: #b56a37;
+    --private-ink: #8f5124;
+    --private-soft: #f6ebe0;
+    --ok: #2f9e51;
+    --warn: #b7791f;
+    --shadow: 0 1px 2px rgba(29,34,48,.06), 0 6px 20px rgba(29,34,48,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #12151c;
+      --surface: #1a1e27;
+      --surface-2: #222732;
+      --ink: #e8eaef;
+      --ink-soft: #c3c8d2;
+      --muted: #949cab;
+      --line: #2a303c;
+      --line-strong: #3a4250;
+      --public: #33cdb8;
+      --public-ink: #7fe0d2;
+      --public-soft: #12302d;
+      --private: #e0955c;
+      --private-ink: #efb488;
+      --private-soft: #32241a;
+      --ok: #4ac06f;
+      --warn: #e0aa4c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 26px rgba(0,0,0,.28);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12151c;
+    --surface: #1a1e27;
+    --surface-2: #222732;
+    --ink: #e8eaef;
+    --ink-soft: #c3c8d2;
+    --muted: #949cab;
+    --line: #2a303c;
+    --line-strong: #3a4250;
+    --public: #33cdb8;
+    --public-ink: #7fe0d2;
+    --public-soft: #12302d;
+    --private: #e0955c;
+    --private-ink: #efb488;
+    --private-soft: #32241a;
+    --ok: #4ac06f;
+    --warn: #e0aa4c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 26px rgba(0,0,0,.28);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: clamp(20px, 4vw, 52px) clamp(16px, 4vw, 40px) 64px; }
+  .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+
+  header { border-bottom: 1px solid var(--line); padding-bottom: 26px; margin-bottom: 34px; }
+  .eyebrow {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--public-ink); font-weight: 600; margin: 0 0 12px;
+  }
+  h1 {
+    font-size: clamp(30px, 5.5vw, 46px); line-height: 1.05; margin: 0 0 12px;
+    letter-spacing: -.02em; text-wrap: balance; font-weight: 720;
+  }
+  h1 .mono { font-size: .92em; }
+  .lede { font-size: clamp(16px, 2vw, 18px); color: var(--ink-soft); max-width: 60ch; margin: 0 0 22px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12.5px; font-weight: 600; padding: 6px 11px; border-radius: 999px;
+    background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--public); }
+
+  h2 { font-size: clamp(19px, 2.6vw, 23px); letter-spacing: -.01em; margin: 0 0 4px; font-weight: 680; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
+  section { margin-top: 46px; }
+
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .principle {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px 20px 18px; box-shadow: var(--shadow);
+  }
+  .principle h3 { margin: 0 0 6px; font-size: 15.5px; letter-spacing: .01em; }
+  .principle p { margin: 0; color: var(--muted); font-size: 13.5px; }
+  .principle .split-word { font-weight: 700; }
+  .pub-word { color: var(--public-ink); }
+  .prv-word { color: var(--private-ink); }
+
+  .flow { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+  .tier {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 14px 16px; box-shadow: var(--shadow); position: relative; z-index: 1;
+  }
+  .tier + .tier { margin-top: 26px; }
+  .tier + .tier::before {
+    content: ""; position: absolute; top: -22px; left: 50%; width: 2px; height: 18px;
+    background: var(--line-strong); transform: translateX(-50%);
+  }
+  .tier + .tier::after {
+    content: ""; position: absolute; top: -8px; left: 50%; transform: translateX(-50%) rotate(45deg);
+    width: 7px; height: 7px; border-right: 2px solid var(--line-strong); border-bottom: 2px solid var(--line-strong);
+  }
+  .tier-label {
+    font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 10px;
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .node {
+    flex: 1 1 auto; min-width: 0; border-radius: 10px; padding: 11px 13px;
+    border: 1px solid var(--line-strong); background: var(--surface-2);
+  }
+  .node .n-name { font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 640; }
+  .node .n-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .node.you { text-align: center; background: transparent; border-style: dashed; }
+  .node.brain { background: var(--surface); border-color: var(--line-strong); }
+  .node.skill { border-left: 3px solid var(--ink-soft); }
+  .node.judge { border-left: 3px solid var(--public); }
+  .node.judge .n-name { color: var(--public-ink); }
+  .node.mech { border-left: 3px solid var(--private); }
+  .node.mech .n-name { color: var(--private-ink); }
+  .node.file { border-left: 3px solid var(--private); background: var(--private-soft); }
+  .callout {
+    margin-top: 26px; border: 1px dashed var(--line-strong); border-radius: 12px;
+    padding: 14px 16px; background: transparent; font-size: 13px; color: var(--ink-soft);
+  }
+  .callout b { color: var(--ink); }
+  .callout .mono { color: var(--private-ink); }
+
+  .split { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: stretch; }
+  .zone { border-radius: 16px; padding: 20px; border: 1.5px solid; }
+  .zone.pub { background: var(--public-soft); border-color: color-mix(in srgb, var(--public) 45%, transparent); }
+  .zone.prv { background: var(--private-soft); border-color: color-mix(in srgb, var(--private) 45%, transparent); }
+  .zone h3 { margin: 0 0 3px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .zone.pub h3 { color: var(--public-ink); }
+  .zone.prv h3 { color: var(--private-ink); }
+  .zone .z-sub { font-size: 12px; color: var(--muted); margin: 0 0 14px; }
+  .filelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+  .filelist li {
+    font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; color: var(--ink-soft);
+    padding: 4px 0; display: flex; align-items: baseline; gap: 8px; border-bottom: 1px dotted var(--line);
+  }
+  .filelist li:last-child { border-bottom: 0; }
+  .filelist .tag { font-size: 11px; color: var(--muted); margin-left: auto; white-space: nowrap; font-family: ui-sans-serif, system-ui, sans-serif; }
+  .grp { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 12px 0 3px; }
+  .grp:first-child { margin-top: 0; }
+
+  .boundary { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 14px; gap: 8px; }
+  .boundary .seam { width: 2px; flex: 1; background: repeating-linear-gradient(var(--line-strong) 0 6px, transparent 6px 12px); }
+  .guard {
+    writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);
+    font-family: ui-monospace, Menlo, monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; padding: 8px 0;
+  }
+  .guard-badge {
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: 999px;
+    padding: 10px 6px; text-align: center; font-size: 18px; box-shadow: var(--shadow);
+  }
+
+  .cast { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .col-head { font-size: 13px; font-weight: 700; letter-spacing: .02em; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+  .col-head .kind { font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; color: #fff; }
+  .kind.k-skill { background: var(--ink-soft); }
+  .kind.k-agent { background: var(--public); }
+  .kind.k-script { background: var(--private); }
+  .comp { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  .comp li { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 12px 13px; box-shadow: var(--shadow); }
+  .comp .c-name { font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 640; }
+  .comp .c-desc { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .comp .c-ops { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--private-ink); margin-top: 6px; word-spacing: 2px; }
+
+  footer { margin-top: 52px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: space-between; }
+  footer .mono { color: var(--ink-soft); }
+
+  @media (max-width: 720px) {
+    .principles, .cast { grid-template-columns: 1fr; }
+    .split { grid-template-columns: 1fr; gap: 14px; }
+    .boundary { flex-direction: row; padding: 4px 0; }
+    .boundary .seam { width: auto; height: 2px; background: repeating-linear-gradient(90deg, var(--line-strong) 0 6px, transparent 6px 12px); }
+    .guard { writing-mode: horizontal-tb; transform: none; }
+    .row { flex-direction: column; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">System design</p>
+    <h1><span class="mono">claude-jobhunt-agents</span></h1>
+    <p class="lede">A multi-agent job-hunt workspace: skills route the work, subagents do the judgment, deterministic scripts own the bookkeeping — and a hard boundary keeps every piece of your real data out of the public repo.</p>
+    <div class="chips">
+      <span class="chip"><span class="dot"></span>5 agents · 3 skills · 3 scripts</span>
+      <span class="chip">public tooling · private data</span>
+      <span class="chip">LLM for judgment · code for mechanics</span>
+    </div>
+  </header>
+
+  <section id="principles">
+    <h2>Two principles hold it together</h2>
+    <p class="sub">Every design choice below descends from one of these.</p>
+    <div class="principles">
+      <div class="principle">
+        <h3>LLM for judgment · code for mechanics</h3>
+        <p>Research and scoring need reasoning → they run in <span class="split-word pub-word">subagents</span>. Sorting, de-duping, merging the board are deterministic → they run in <span class="split-word prv-word">Python</span>: exact, atomic, race-free, sub-second.</p>
+      </div>
+      <div class="principle">
+        <h3>Public tooling · private data</h3>
+        <p>The <span class="split-word pub-word">tooling</span> is git-tracked and public. Your <span class="split-word prv-word">real data</span> lives only in gitignored files the tooling reads locally. Nothing personal is ever committed.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="flow">
+    <h2>How the work flows</h2>
+    <p class="sub">Paste a job (or ask to prep). The main agent reads a skill, delegates to subagents for judgment, and routes all board writes through one script.</p>
+    <div class="flow">
+      <div class="tier">
+        <div class="tier-label">You</div>
+        <div class="row"><div class="node you"><div class="n-name">“analyze this job” · “prep me for &lt;Co&gt;” · “answer this question”</div></div></div>
+      </div>
+      <div class="tier">
+        <div class="tier-label">Orchestrator</div>
+        <div class="row"><div class="node brain"><div class="n-name">🧠 main agent</div><div class="n-desc">reads the skill, delegates, talks to you — holds no board state of its own</div></div></div>
+      </div>
+      <div class="tier">
+        <div class="tier-label">Skills — the playbooks</div>
+        <div class="row">
+          <div class="node skill"><div class="n-name">analyze-job</div><div class="n-desc">dedup · analyze · batch · answer · status · refresh</div></div>
+          <div class="node skill"><div class="n-name">interview-prep</div><div class="n-desc">mock screen · prep pack</div></div>
+          <div class="node skill"><div class="n-name">list-sessions</div><div class="n-desc">utility</div></div>
+        </div>
+      </div>
+      <div class="tier">
+        <div class="tier-label">Subagents — judgment, run in parallel</div>
+        <div class="row">
+          <div class="node judge"><div class="n-name">job-analyzer</div><div class="n-desc">research + score one posting</div></div>
+          <div class="node judge"><div class="n-name">application-answerer</div><div class="n-desc">draft one application answer</div></div>
+          <div class="node judge"><div class="n-name">interview-prep-writer</div><div class="n-desc">recruiter-screen prep pack</div></div>
+        </div>
+      </div>
+      <div class="tier">
+        <div class="tier-label">Script — mechanics, deterministic</div>
+        <div class="row">
+          <div class="node mech"><div class="n-name">scoreboard.py</div><div class="n-desc">the only thing that writes the board</div></div>
+        </div>
+      </div>
+      <div class="tier">
+        <div class="tier-label">Files (private, gitignored)</div>
+        <div class="row">
+          <div class="node file"><div class="n-name">job-analyses/&lt;Co&gt;.md</div><div class="n-desc">one analysis / prep pack / saved answer per posting</div></div>
+          <div class="node file"><div class="n-name">job-scoreboard.md</div><div class="n-desc">the ranked master board</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <b>The board pipeline.</b> New rows are appended to a <span class="mono">_pending.md</span> staging buffer, then merged into the board in one atomic <span class="mono">flush</span> — so concurrent sessions never clobber it. On the way in, <b>a hard min-score gate drops anything scoring&nbsp;&lt;&nbsp;6</b>, ties share a rank, and every mutation stamps <span class="mono">.board-state.json</span> so a long-running session can <span class="mono">refresh</span> and re-read instead of reasoning from stale memory.
+    </div>
+  </section>
+
+  <section id="split">
+    <h2>Public vs private — the boundary</h2>
+    <p class="sub">The <span class="mono">.gitignore</span> + <span class="mono">publish_guard.py</span> + a pre-commit hook form a one-way membrane: tooling flows out, data never does.</p>
+    <div class="split">
+      <div class="zone pub">
+        <h3>◐ Public · git-tracked → GitHub</h3>
+        <p class="z-sub">Generic tooling + fictional templates only.</p>
+        <div class="grp">Skills</div>
+        <ul class="filelist">
+          <li>analyze-job/SKILL.md <span class="tag">+ scoreboard.py</span></li>
+          <li>interview-prep/SKILL.md</li>
+          <li>list-sessions/SKILL.md <span class="tag">+ .py</span></li>
+        </ul>
+        <div class="grp">Agents</div>
+        <ul class="filelist">
+          <li>job-analyzer.md</li>
+          <li>application-answerer.md</li>
+          <li>interview-prep-writer.md</li>
+          <li>publish-guard.md · design-doc-writer.md</li>
+        </ul>
+        <div class="grp">Root + templates</div>
+        <ul class="filelist">
+          <li>README.md · LICENSE · .gitignore</li>
+          <li>publish_guard.py · docs/design.html</li>
+          <li>profile.example.md <span class="tag">template</span></li>
+          <li>application-kit.example.md <span class="tag">template</span></li>
+          <li>examples/*.md <span class="tag">fictional</span></li>
+        </ul>
+      </div>
+
+      <div class="boundary">
+        <div class="seam"></div>
+        <div class="guard-badge" title="publish_guard.py + pre-commit hook">🛡️</div>
+        <div class="guard">.gitignore · guard · hook</div>
+        <div class="seam"></div>
+      </div>
+
+      <div class="zone prv">
+        <h3>● Private · gitignored → local only</h3>
+        <p class="z-sub">Your real identity, data, and outputs. Never leaves the machine.</p>
+        <div class="grp">Identity + kit</div>
+        <ul class="filelist">
+          <li>profile.local.md <span class="tag">who you are</span></li>
+          <li>application-kit.md <span class="tag">answers</span></li>
+          <li>.secrets.local <span class="tag">guard tokens</span></li>
+        </ul>
+        <div class="grp">Job-search data</div>
+        <ul class="filelist">
+          <li>job-scoreboard.md</li>
+          <li>job-analyses/ <span class="tag">per-company</span></li>
+          <li>.board-state.json <span class="tag">marker</span></li>
+        </ul>
+        <div class="grp">Docs + notes</div>
+        <ul class="filelist">
+          <li>Resume .docx / .pdf</li>
+          <li>*.local.md <span class="tag">ideas / notes</span></li>
+          <li>.claude/settings.local.json</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="cast">
+    <h2>The components</h2>
+    <p class="sub">All public. Personal specifics never live here — every one reads them from the private files at runtime.</p>
+    <div class="cast">
+      <div>
+        <p class="col-head"><span class="kind k-skill">skill</span> Playbooks ×3</p>
+        <ul class="comp">
+          <li><div class="c-name">analyze-job</div><div class="c-desc">Orchestrator: dedup, analyze, batch, application answer, status, refresh.</div></li>
+          <li><div class="c-name">interview-prep</div><div class="c-desc">Recruiter/HR screen: interactive mock + prep-pack generation.</div></li>
+          <li><div class="c-name">list-sessions</div><div class="c-desc">Lists past Claude sessions for the project.</div></li>
+        </ul>
+      </div>
+      <div>
+        <p class="col-head"><span class="kind k-agent">agent</span> Agents ×5</p>
+        <ul class="comp">
+          <li><div class="c-name">job-analyzer</div><div class="c-desc">Researches + scores one posting → ⭐ report + row.</div></li>
+          <li><div class="c-name">application-answerer</div><div class="c-desc">Drafts a short, human application answer from the analysis + kit.</div></li>
+          <li><div class="c-name">interview-prep-writer</div><div class="c-desc">Writes one company's recruiter-screen pack.</div></li>
+          <li><div class="c-name">publish-guard</div><div class="c-desc">Read-only leak check before publishing.</div></li>
+          <li><div class="c-name">design-doc-writer</div><div class="c-desc">Keeps this design page in sync — surgical, low-cost.</div></li>
+        </ul>
+      </div>
+      <div>
+        <p class="col-head"><span class="kind k-script">script</span> Mechanics ×3</p>
+        <ul class="comp">
+          <li><div class="c-name">scoreboard.py</div><div class="c-desc">Owns every board write — deterministic, atomic.</div><div class="c-ops">append flush status refresh remove prune state check</div></li>
+          <li><div class="c-name">publish_guard.py</div><div class="c-desc">Secret scanner; exit ≠ 0 blocks the commit.</div></li>
+          <li><div class="c-name">list_sessions.py</div><div class="c-desc">Backs the list-sessions skill.</div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>claude-jobhunt-agents · a multi-agent workspace for Claude Code</span>
+    <span class="mono">public tooling · private data</span>
+  </footer>
+</div>
