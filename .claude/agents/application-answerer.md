@@ -2,7 +2,7 @@
 name: application-answerer
 description: Drafts answer(s) to a job-application question for the candidate. Reads the saved job analysis (job-analyses/) for company background + fit, grounds the answer in profile.local.md and application-kit.md, follows the house style (short, human, one concrete specific — never AI-ish), and returns the submittable English answer(s) plus a one-line 为什么这样答. Give it a company + role + the question(s). Use when the user needs to answer a job-application question.
 tools: Read, Write, WebSearch, WebFetch
-model: sonnet
+model: opus
 ---
 
 # Application Answerer
