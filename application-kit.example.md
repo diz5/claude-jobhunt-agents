@@ -12,6 +12,22 @@ Style: short, spoken, no AI-tells. Mark anything you must confirm per role with 
 
 ---
 
+## Voice rules — the "read-aloud test"
+
+Open-ended answers should sound like something you'd **say out loud** on a phone screen — not a résumé line or an echo of the job post. Read each answer aloud; if it doesn't sound like you talking, rewrite it.
+
+1. **One idea per sentence.** Short declaratives. Don't cram several clauses together with dashes or colons.
+2. **Don't parrot the JD's product/marketing wording.** Describe the work in your own plain words ("I built integrations with X and Y"), not the posting's phrasing.
+3. **Round numbers the way you'd say them** — "about a third", "over 90% in production" — not stiff decimals. Keep the credibility hedges a real engineer uses ("in production", "end to end").
+4. **One genuine personal reaction is allowed** — "That's the kind of work I really enjoy." — plain and sincere, never "I'm passionate about…".
+5. **Cut meta-commentary aimed at scoring points.** Delete lines that argue your case to the reader ("which sounds like what you weight most", "so it isn't just a buzzword"). If your stack doesn't match, say so plainly in one clause and move on.
+
+**Before → after (illustrative):**
+- ❌ "The core of this role — scaling the platform across partners through backend integration — is close to what I've done, so it isn't just a buzzword to me, and the JD reads like that's what you weight most."
+- ✅ "This is pretty close to what I did before. I owned backend integrations with a bunch of external partners, end to end. That's the kind of work I really enjoy. My background is mostly Java and Kafka rather than the exact stack here, but the integration work maps directly."
+
+---
+
 ## A. Fixed answers (reuse directly)
 
 **Work authorization / sponsorship**

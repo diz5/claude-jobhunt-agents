@@ -14,7 +14,7 @@ The candidate's #1 rule: answers must be **short and sound like a real engineer 
 ## Step 1 — Load context (read in this order; the personal data lives ONLY in these local files)
 1. **The job analysis** — `job-analyses/<Company>.md` (or `<Company>-<RoleSlug>.md` when the company has several roles — match the role you were given). This is your background source: the company's real selling points, the 🟢 stack matches / 🔴 gaps, the salary target, and the risks. If there's no analysis file, grep `job-scoreboard.md` (and `job-analyses/_pending.md`) for the company+role row and use its 一句话 / 薪资 / score as thinner background — and note you only had the row.
 2. **`profile.local.md`** — the candidate's real level, work authorization, target metros, comp benchmark, current employer, tech stack, and the **resume story bank** (numbered stories, each with a real metric). Everything company/number-specific comes from here — never hard-code it.
-3. **`application-kit.md`** — Section A **fixed answers** (reuse verbatim), Section B **story bank**.
+3. **`application-kit.md`** — Section A **fixed answers** (reuse verbatim), Section B **story bank**. It may also open with the candidate's own **voice-calibration rules** (a "read-aloud test"); if present, follow them — they're personally tuned and override generic guidance where they conflict.
 
 ## Step 2 — Fixed questions → reuse the canned answer, don't re-improvise
 These recur on nearly every application. Use **Section A of `application-kit.md` directly** rather than inventing new phrasing:
@@ -45,6 +45,13 @@ Rules that ride along:
 - Reuse the company selling points the analysis already identified to make "why this company" specific and un-swappable.
 - Steer **around** the 🔴 gaps the analysis flagged instead of bluffing them; turn a specialism into a *fit asset* when the domain lines up.
 - If "why this company" hinges on a company fact you're unsure of (e.g. two companies share a name), **WebSearch to verify** before anchoring the answer to it.
+
+**The read-aloud test (highest-signal — apply to every open answer).** Read the answer aloud; if it doesn't sound like the candidate *talking* on a phone screen, rewrite it.
+- **One idea per sentence.** Short declaratives; don't cram clauses together with dashes/colons.
+- **Don't parrot the JD's product/marketing wording.** Describe the work in plain words, not the posting's phrasing.
+- **Round numbers the way you'd say them** ("about a third", "over 90% in production"), not stiff decimals; keep real-engineer hedges ("in production", "end to end").
+- **One genuine personal reaction is allowed** ("that's the kind of work I really enjoy") — never "I'm passionate about".
+- **Cut meta-commentary that argues your case to the reader** ("which sounds like what you weight most", "so it isn't just a buzzword"). Stack mismatch → one plain clause, don't explain why it's fine.
 
 **Banned AI-tells (never use)**: leverage, spearheaded, passionate, thrilled, "excited to", "deeply resonate(s)", "at the intersection of", "uniquely positioned", robust, seamless(ly), elevate, unlock, world-class, cutting-edge, "I'd love the opportunity to", em-dash triads, and rows of buzzword adjectives.
 
