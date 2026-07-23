@@ -211,7 +211,7 @@
     <h1><span class="mono">claude-jobhunt-agents</span></h1>
     <p class="lede">A multi-agent job-hunt workspace: skills route the work, subagents do the judgment, deterministic scripts own the bookkeeping — and a hard boundary keeps every piece of your real data out of the public repo.</p>
     <div class="chips">
-      <span class="chip"><span class="dot"></span>5 agents · 3 skills · 3 scripts</span>
+      <span class="chip"><span class="dot"></span>6 agents · 3 skills · 3 scripts</span>
       <span class="chip">public tooling · private data</span>
       <span class="chip">LLM for judgment · code for mechanics</span>
     </div>
@@ -305,6 +305,7 @@
           <li>publish_guard.py · docs/design.html</li>
           <li>profile.example.md <span class="tag">template</span></li>
           <li>application-kit.example.md <span class="tag">template</span></li>
+          <li>backup.example.sh <span class="tag">template</span></li>
           <li>examples/*.md <span class="tag">fictional</span></li>
         </ul>
       </div>
@@ -354,13 +355,14 @@
         </ul>
       </div>
       <div>
-        <p class="col-head"><span class="kind k-agent">agent</span> Agents ×5</p>
+        <p class="col-head"><span class="kind k-agent">agent</span> Agents ×6</p>
         <ul class="comp">
           <li><div class="c-name">job-analyzer</div><div class="c-desc">Researches + scores one posting → ⭐ report + row.</div></li>
           <li><div class="c-name">application-answerer</div><div class="c-desc">Drafts a short, human application answer from the analysis + kit.</div></li>
           <li><div class="c-name">interview-prep-writer</div><div class="c-desc">Writes one company's recruiter-screen pack.</div></li>
           <li><div class="c-name">publish-guard</div><div class="c-desc">Read-only leak check before publishing.</div></li>
           <li><div class="c-name">design-doc-writer</div><div class="c-desc">Keeps this design page in sync — surgical, low-cost.</div></li>
+          <li><div class="c-name">role-scout</div><div class="c-desc">Scouts a company's careers page/ATS for better-fitting roles.</div></li>
         </ul>
       </div>
       <div>

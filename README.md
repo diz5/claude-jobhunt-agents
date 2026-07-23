@@ -30,6 +30,7 @@ Paste a job description (or a company + role). The system:
 🧠 main agent (orchestrator)         reads the skill, delegates, talks to you
 ├── 📖 analyze-job (skill)           the playbook: dedup, analyze, batch, answer, status
 ├── 👷 job-analyzer (subagent)       JUDGMENT: research + score one posting (runs in parallel)
+├── 🔭 role-scout (subagent)         JUDGMENT: good company, wrong role → find a better-fitting req
 ├── ✍️ application-answerer (agent)  JUDGMENT: draft a job-application answer from the analysis + profile
 ├── ⚙️ scoreboard.py (script)        MECHANICAL: append / flush / status / refresh / remove / prune / state / check
 ├── 🎤 interview-prep (skill)        the playbook: recruiter-screen mock (interactive) + prep pack
@@ -55,6 +56,7 @@ and a batch of analyses doesn't block on a full re-sort.
 | `.claude/skills/analyze-job/SKILL.md` | The orchestrator playbook (analyze / batch / application-answer / status / refresh modes). |
 | `.claude/skills/analyze-job/scoreboard.py` | Deterministic scoreboard bookkeeping (CLI: `append`/`flush`/`status`/`refresh`/`remove`/`prune`/`state`/`check`). |
 | `.claude/agents/job-analyzer.md` | Subagent that researches + scores one posting and returns a ⭐ report + scoreboard row. |
+| `.claude/agents/role-scout.md` | Subagent that scouts a company's careers page / ATS for a better-fitting role when the analyzed one missed. |
 | `.claude/agents/application-answerer.md` | Subagent that drafts a job-application answer, grounded in the saved analysis + your profile/kit. |
 | `.claude/agents/publish-guard.md` | Read-only agent that verifies the repo is safe to publish. |
 | `.claude/skills/interview-prep/SKILL.md` | Recruiter/HR-screen playbook: interactive mock screen + prep-pack generation. |
@@ -89,6 +91,7 @@ claude-jobhunt-agents/
     ├── settings.example.json       # copy → .claude/settings.local.json
     ├── agents/
     │   ├── job-analyzer.md          # subagent: research + score one posting
+    │   ├── role-scout.md            # subagent: scout a better-fitting role at one company
     │   ├── application-answerer.md  # subagent: draft a job-application answer
     │   ├── interview-prep-writer.md # subagent: write one company's recruiter-screen pack
     │   ├── publish-guard.md         # agent: verify repo is safe to publish
