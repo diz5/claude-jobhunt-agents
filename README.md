@@ -64,6 +64,7 @@ and a batch of analyses doesn't block on a full re-sort.
 | `publish_guard.py` | The deterministic secret scanner the guard agent runs. |
 | `profile.example.md` | Template for your (gitignored) `profile.local.md`. |
 | `application-kit.example.md` | Template for your (gitignored) `application-kit.md` — fixed answers + story bank. |
+| `backup.example.sh` | Optional: template for backing up your gitignored personal data to a cloud-synced folder. |
 | `docs/design.html` | Self-contained architecture/design page (open in a browser, or serve via GitHub Pages). |
 | `examples/` | Fictional sample output — a scoreboard, a job analysis, and a recruiter-screen prep pack — so you can see the output shapes. |
 
@@ -77,6 +78,7 @@ claude-jobhunt-agents/
 ├── publish_guard.py                # secret scanner the pre-commit hook runs
 ├── profile.example.md              # copy → profile.local.md (gitignored) and fill in
 ├── application-kit.example.md      # copy → application-kit.md (gitignored) and fill in
+├── backup.example.sh               # copy → ~/backup.sh: mirror personal data to cloud storage
 ├── docs/
 │   └── design.html                 # self-contained architecture/design page
 ├── examples/                       # fictional sample output
@@ -125,6 +127,11 @@ Personal data lives **outside git**, and a guard proves it before anything ships
 - **Guard:** `python3 publish_guard.py` scans every *git-tracked* file for personal data
   (home paths, emails, salary figures, and your own secret tokens from `.secrets.local`) and
   fails if anything leaks. The `publish-guard` agent runs it and adds a judgment pass.
+- **Backup:** since the personal data is out of git, git isn't backing it up either. Copy
+  [`backup.example.sh`](backup.example.sh) to `~/backup.sh` and schedule it (launchd/cron) to
+  mirror the workspace — gitignored files included — into iCloud/Dropbox. One rule: the **live
+  repo must not live inside a cloud-synced folder** (syncing a live `.git` corrupts it, and
+  macOS `~/Desktop`/`~/Documents` add random permission failures) — only the rsync copies go in.
 
 ## License
 
