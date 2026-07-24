@@ -6,14 +6,17 @@
 
 # Job-search data
 job-scoreboard.md
+job-scoreboard.md.bak*
 job-analyses/
 application-kit.md
 .board-state.json
+interview-prep/
 
-# Resumes & docs
+# Resumes & docs (any format — resume drafts in markdown included)
 *.pdf
 *.docx
 *.doc
+*[Rr]esume*
 old-resume/
 
 # Local settings & session logs (contain paths + researched companies)
