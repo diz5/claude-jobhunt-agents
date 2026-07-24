@@ -21,7 +21,9 @@ Paste a job description (or a company + role). The system:
 4. **Files** it: one analysis per posting, plus a one-line row appended to a ranked scoreboard.
 5. Handles **application questions** (short, human answers grounded in your real story bank)
    and **status tracking** (applied / interviewing / offer).
-6. **Preps you for the interview** — generates a tailored recruiter/HR phone-screen prep pack and
+6. **Sources new postings proactively** — sweeps ATS job boards (Greenhouse, Lever, Ashby,
+   Workday) for fresh roles matching your profile, deduped against everything already tracked.
+7. **Preps you for the interview** — generates a tailored recruiter/HR phone-screen prep pack and
    runs interactive mock screens (see [`examples/Acme-Corp-interview.md`](examples/Acme-Corp-interview.md)).
 
 ## Architecture
@@ -31,6 +33,7 @@ Paste a job description (or a company + role). The system:
 ├── 📖 analyze-job (skill)           the playbook: dedup, analyze, batch, answer, status
 ├── 👷 job-analyzer (subagent)       JUDGMENT: research + score one posting (runs in parallel)
 ├── 🔭 role-scout (subagent)         JUDGMENT: good company, wrong role → find a better-fitting req
+├── 🔎 job-sourcer (subagent)        JUDGMENT: proactively sweep ATS job boards for new fitting roles
 ├── ✍️ application-answerer (agent)  JUDGMENT: draft a job-application answer from the analysis + profile
 ├── ⚙️ scoreboard.py (script)        MECHANICAL: append / flush / status / refresh / remove / prune / state / check
 ├── 🎤 interview-prep (skill)        the playbook: recruiter-screen mock (interactive) + prep pack
@@ -53,10 +56,11 @@ and a batch of analyses doesn't block on a full re-sort.
 
 | Path | What it is |
 |---|---|
-| `.claude/skills/analyze-job/SKILL.md` | The orchestrator playbook (analyze / batch / application-answer / status / refresh modes). |
+| `.claude/skills/analyze-job/SKILL.md` | The orchestrator playbook (analyze / batch / application-answer / status / refresh / sourcing modes). |
 | `.claude/skills/analyze-job/scoreboard.py` | Deterministic scoreboard bookkeeping (CLI: `append`/`flush`/`status`/`refresh`/`remove`/`prune`/`state`/`check`). |
 | `.claude/agents/job-analyzer.md` | Subagent that researches + scores one posting and returns a ⭐ report + scoreboard row. |
 | `.claude/agents/role-scout.md` | Subagent that scouts a company's careers page / ATS for a better-fitting role when the analyzed one missed. |
+| `.claude/agents/job-sourcer.md` | Subagent that proactively sweeps ATS job boards (Greenhouse/Lever/Ashby/Workday) for new postings matching your profile. |
 | `.claude/agents/application-answerer.md` | Subagent that drafts a job-application answer, grounded in the saved analysis + your profile/kit. |
 | `.claude/agents/publish-guard.md` | Read-only agent that verifies the repo is safe to publish. |
 | `.claude/skills/interview-prep/SKILL.md` | Recruiter/HR-screen playbook: interactive mock screen + prep-pack generation. |
@@ -92,6 +96,7 @@ claude-jobhunt-agents/
     ├── agents/
     │   ├── job-analyzer.md          # subagent: research + score one posting
     │   ├── role-scout.md            # subagent: scout a better-fitting role at one company
+    │   ├── job-sourcer.md           # subagent: sweep job boards for new fitting postings
     │   ├── application-answerer.md  # subagent: draft a job-application answer
     │   ├── interview-prep-writer.md # subagent: write one company's recruiter-screen pack
     │   ├── publish-guard.md         # agent: verify repo is safe to publish

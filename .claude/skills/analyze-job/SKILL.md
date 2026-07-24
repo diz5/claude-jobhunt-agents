@@ -33,6 +33,7 @@ This is the "have I already seen/applied to this?" guard. Always run it first.
 - **Status update** — user says "I applied to X" / "mark X as applied" / "X rejected me" / "got an interview at X" → run **Mode D** (update status only, no re-analysis).
 - **Application question** — user pasted an English question with no new JD → run **Application Answer** about the *most recent posting discussed in this chat*.
 - **Refresh / re-sync** — user says "refresh" / "sync" / "resync" / "刷新" / "重新同步" → run **Mode E** (merge pending, re-read the board from disk, drop stale in-context postings, then only analyze genuinely new jobs from here).
+- **Proactive sourcing** — user asks to FIND new jobs rather than bringing one ("找新岗位" / "source new roles" / "search LinkedIn/Indeed for me") → run **Mode F** (spawn `job-sourcer` slices → shortlist → user picks → normal analyze flow).
 
 ## Global rules
 
@@ -123,3 +124,24 @@ When the user says **refresh / sync / resync / 刷新 / 重新同步**, do exact
 4. **Confirm in one line**, e.g. `🔄 已重新同步：榜单 N 行（更新于 <last_updated>），暂存区已并入。从现在起只分析新岗位。` No board dump.
 
 Track `last_updated` from the `state` call in your context; if you run `state` again later and it changed, another session moved the board — re-Read it before reporting board facts.
+
+## Mode F — Proactive sourcing (find new postings, don't wait for them)
+
+When the user asks you to FIND jobs (instead of bringing one), delegate the hunting to
+**`job-sourcer`** subagents:
+
+1. **Build 2–4 search slices** from `profile.local.md` — cross its 🟢 strong-fit domains with
+   its target metros/remote (e.g. "<domain A> × <metro 1>", "<domain B> × remote-US"). If the
+   user named a specific direction ("only security roles", "only NYC"), use their slices instead.
+2. **Fan out**: spawn one `job-sourcer` per slice **in parallel** (one Agent call each, single
+   message). Each reads the profile + board itself, sweeps ATS/public job sources, and returns
+   a ranked shortlist with direct apply URLs (`JOB_SOURCED:` sentinel lines).
+3. **Merge + dedupe** across slices (same company+role found by two slices = one entry) and
+   against the board (Step 0 identity rule). Present ONE compact shortlist: company, role,
+   location, posted date, apply URL, 契合度一句话. This is new-postings output, not a board dump.
+4. **User picks → normal analyze flow** (Mode A/C). **Status override:** sourced roles are by
+   definition NOT yet applied — their rows get `未投`, overriding the usual 已投 default.
+5. **Scope honesty:** the sourcer sweeps ATS boards (Greenhouse/Lever/Ashby/Workday) and
+   fetch-friendly job sites. LinkedIn/Indeed are login-walled to anonymous automation — if the
+   user asks for those specifically, say in one line that they should browse those themselves
+   and paste links into the normal flow; don't pretend to search them.
