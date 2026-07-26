@@ -5,6 +5,7 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 the same commit** (the pre-push review covers it).
 
 ## 2026-07-26
+- Add `md2docx.py` — convert a Markdown résumé to .docx by cloning the look of a reference .docx (auto-detects name/heading/bullet/job-header/skills prototypes + education table; no configuration).
 - Add `CHANGELOG.md` (this file) — dated history of changes on main.
 
 ## 2026-07-23

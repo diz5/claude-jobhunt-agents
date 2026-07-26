@@ -71,6 +71,7 @@ and a batch of analyses doesn't block on a full re-sort.
 | `profile.example.md` | Template for your (gitignored) `profile.local.md`. |
 | `application-kit.example.md` | Template for your (gitignored) `application-kit.md` — fixed answers + story bank. |
 | `backup.example.sh` | Optional: template for backing up your gitignored personal data to a cloud-synced folder. |
+| `md2docx.py` | Convert your Markdown résumé to .docx, cloning the exact look (fonts, bullets, tabs, education table) of a reference .docx you already like. |
 | `docs/design.html` | Self-contained architecture/design page (open in a browser, or serve via GitHub Pages). |
 | `examples/` | Fictional sample output — a scoreboard, a job analysis, and a recruiter-screen prep pack — so you can see the output shapes. |
 
@@ -83,6 +84,7 @@ claude-jobhunt-agents/
 ├── CHANGELOG.md                    # dated log of changes landed on main
 ├── .gitignore                      # keeps all personal data out of git
 ├── publish_guard.py                # secret scanner the pre-commit hook runs
+├── md2docx.py                      # markdown résumé → .docx (clones a reference docx's look)
 ├── profile.example.md              # copy → profile.local.md (gitignored) and fill in
 ├── application-kit.example.md      # copy → application-kit.md (gitignored) and fill in
 ├── backup.example.sh               # copy → ~/backup.sh: mirror personal data to cloud storage
