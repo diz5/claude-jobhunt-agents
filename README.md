@@ -80,6 +80,7 @@ and a batch of analyses doesn't block on a full re-sort.
 claude-jobhunt-agents/
 ├── README.md                       # this file
 ├── LICENSE                         # MIT
+├── CHANGELOG.md                    # dated log of changes landed on main
 ├── .gitignore                      # keeps all personal data out of git
 ├── publish_guard.py                # secret scanner the pre-commit hook runs
 ├── profile.example.md              # copy → profile.local.md (gitignored) and fill in
