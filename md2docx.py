@@ -160,11 +160,13 @@ def parse_edu(lines):
 def build_table(tbl_proto, rows):
     tbl = copy.deepcopy(tbl_proto)
     trs = tbl.findall(W + 'tr')
-    while len(trs) < len(rows):
-        tbl.append(copy.deepcopy(trs[0]))
-        trs = tbl.findall(W + 'tr')
-    for extra in trs[len(rows):]:
-        tbl.remove(extra)
+    # All rows clone the SAME prototype row — mixed reference rows can carry
+    # different paragraph spacing, which shows up as uneven line gaps.
+    proto_row = copy.deepcopy(trs[0])
+    for tr in trs:
+        tbl.remove(tr)
+    for _ in rows:
+        tbl.append(copy.deepcopy(proto_row))
     for row_el, (degree, school, date) in zip(tbl.findall(W + 'tr'), rows):
         for ci, tc in enumerate(row_el.findall(W + 'tc')):
             paras = tc.findall(W + 'p')
