@@ -178,7 +178,7 @@ def build_table(tbl_proto, rows):
             if ci == 0:
                 add_run(keep, degree, rpr, bold=True)
                 if school:
-                    add_run(keep, school, rpr, bold=False, br=True)
+                    add_run(keep, ' — ' + school, rpr, bold=False)
             else:
                 add_run(keep, date, rpr, bold=True)
     return tbl
