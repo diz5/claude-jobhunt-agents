@@ -126,10 +126,12 @@ def add_run(p, text=None, rpr=None, bold=None, tab=False, br=False):
 
 
 def add_inline(p, md, rpr):
-    """Emit runs for a markdown string, honoring **bold** spans."""
+    """Emit runs for a markdown string, honoring **bold** spans.
+    Bold is set explicitly both ways — a prototype whose run is bold (e.g. a
+    skills line's label) would otherwise leak bold into non-bold segments."""
     for i, part in enumerate(re.split(r'\*\*', md)):
         if part:
-            add_run(p, part, rpr, bold=(i % 2 == 1) or None)
+            add_run(p, part, rpr, bold=(i % 2 == 1))
 
 
 def indent_more(p_el, delta=440):
