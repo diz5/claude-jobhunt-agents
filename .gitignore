@@ -10,6 +10,7 @@ job-scoreboard.md.bak*
 job-analyses/
 application-kit.md
 .board-state.json
+.status-history.json
 interview-prep/
 
 # Resumes & docs (any format — resume drafts in markdown included)

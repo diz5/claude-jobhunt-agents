@@ -34,6 +34,7 @@ This is the "have I already seen/applied to this?" guard. Always run it first.
 - **Application question** — user pasted an English question with no new JD → run **Application Answer** about the *most recent posting discussed in this chat*.
 - **Refresh / re-sync** — user says "refresh" / "sync" / "resync" / "刷新" / "重新同步" → run **Mode E** (merge pending, re-read the board from disk, drop stale in-context postings, then only analyze genuinely new jobs from here).
 - **Proactive sourcing** — user asks to FIND new jobs rather than bringing one ("找新岗位" / "source new roles" / "search LinkedIn/Indeed for me") → run **Mode F** (spawn `job-sourcer` slices → shortlist → user picks → normal analyze flow).
+- **Status report** — user asks how the hunt is going ("how's my job hunting" / "求职进展" / "status") → run **Mode G** (deterministic `status_report.py` snapshot + a few lines of judgment).
 
 ## Global rules
 
@@ -124,6 +125,13 @@ When the user says **refresh / sync / resync / 刷新 / 重新同步**, do exact
 4. **Confirm in one line**, e.g. `🔄 已重新同步：榜单 N 行（更新于 <last_updated>），暂存区已并入。从现在起只分析新岗位。` No board dump.
 
 Track `last_updated` from the `state` call in your context; if you run `state` again later and it changed, another session moved the board — re-Read it before reporting board facts.
+
+## Mode G — Status report (求职状态)
+
+When the user asks how the job hunt is going:
+1. **Freshness first** — if this session hasn't flushed yet, run Step 0a's flush so staged rows are included.
+2. Run **`python3 .claude/skills/analyze-job/status_report.py`** (options: `--top N`, `--min-score S`). It deterministically prints: totals + deltas vs its own previous run, the interview/offer list, score bands, top unapplied targets, and last-7-days applications. **Never hand-count the board with ad-hoc parsing, and never dump the table in chat** — hand-rolled parsers have misread rank columns as scores before.
+3. Relay the script's output, then add AT MOST a few lines of judgment: what changed, the biggest risk, and 1–3 recommended actions grounded in `profile.local.md` priorities (interview prep > high-fit unapplied targets > referrals/sourcing).
 
 ## Mode F — Proactive sourcing (find new postings, don't wait for them)
 
