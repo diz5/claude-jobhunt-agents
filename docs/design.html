@@ -211,7 +211,7 @@
     <h1><span class="mono">claude-jobhunt-agents</span></h1>
     <p class="lede">A multi-agent job-hunt workspace: skills route the work, subagents do the judgment, deterministic scripts own the bookkeeping — and a hard boundary keeps every piece of your real data out of the public repo.</p>
     <div class="chips">
-      <span class="chip"><span class="dot"></span>7 agents · 3 skills · 3 scripts</span>
+      <span class="chip"><span class="dot"></span>7 agents · 3 skills · 4 scripts</span>
       <span class="chip">public tooling · private data</span>
       <span class="chip">LLM for judgment · code for mechanics</span>
     </div>
@@ -247,7 +247,7 @@
       <div class="tier">
         <div class="tier-label">Skills — the playbooks</div>
         <div class="row">
-          <div class="node skill"><div class="n-name">analyze-job</div><div class="n-desc">dedup · analyze · batch · answer · status · refresh · source</div></div>
+          <div class="node skill"><div class="n-name">analyze-job</div><div class="n-desc">dedup · analyze · batch · answer · status · refresh · source · report</div></div>
           <div class="node skill"><div class="n-name">interview-prep</div><div class="n-desc">mock screen · prep pack</div></div>
           <div class="node skill"><div class="n-name">list-sessions</div><div class="n-desc">utility</div></div>
         </div>
@@ -350,7 +350,7 @@
       <div>
         <p class="col-head"><span class="kind k-skill">skill</span> Playbooks ×3</p>
         <ul class="comp">
-          <li><div class="c-name">analyze-job</div><div class="c-desc">Orchestrator: dedup, analyze, batch, application answer, status, refresh, source.</div></li>
+          <li><div class="c-name">analyze-job</div><div class="c-desc">Orchestrator: dedup, analyze, batch, application answer, status, refresh, source, status report.</div></li>
           <li><div class="c-name">interview-prep</div><div class="c-desc">Recruiter/HR screen: interactive mock + prep-pack generation.</div></li>
           <li><div class="c-name">list-sessions</div><div class="c-desc">Lists past Claude sessions for the project.</div></li>
         </ul>
@@ -368,9 +368,10 @@
         </ul>
       </div>
       <div>
-        <p class="col-head"><span class="kind k-script">script</span> Mechanics ×3</p>
+        <p class="col-head"><span class="kind k-script">script</span> Mechanics ×4</p>
         <ul class="comp">
           <li><div class="c-name">scoreboard.py</div><div class="c-desc">Owns every board write — deterministic, atomic.</div><div class="c-ops">append flush status refresh remove prune state check</div></li>
+          <li><div class="c-name">status_report.py</div><div class="c-desc">Job-hunt snapshot — funnel counts, deltas vs previous run, interviews, score bands, top unapplied.</div></li>
           <li><div class="c-name">publish_guard.py</div><div class="c-desc">Secret scanner; exit ≠ 0 blocks the commit.</div></li>
           <li><div class="c-name">list_sessions.py</div><div class="c-desc">Backs the list-sessions skill.</div></li>
         </ul>

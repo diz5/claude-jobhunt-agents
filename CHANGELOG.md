@@ -1,7 +1,7 @@
 # Changelog
 
 ## 2026-07-27
-- Add `status_report.py` + analyze-job **Mode G** — deterministic job-hunt status snapshot (funnel + deltas vs previous run, interviews, bands, top targets); replaces error-prone ad-hoc board parsing. `.status-history.json` gitignored.
+- Add `status_report.py` + analyze-job **Mode G** — deterministic job-hunt status snapshot (funnel + deltas vs previous run, interviews, bands, top targets); replaces error-prone ad-hoc board parsing. `.status-history.json` gitignored. Design page synced (scripts 3→4).
 
 Dated log of what landed on `main`, newest first. One line per change — the "what/when" a
 `git log` gives you, kept human-readable. **Rule: every commit to `main` adds its line here in
