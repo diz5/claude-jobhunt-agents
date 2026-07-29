@@ -4,6 +4,9 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 `git log` gives you, kept human-readable. **Rule: every commit to `main` adds its line here in
 the same commit** (the pre-push review covers it).
 
+## 2026-07-28
+- Add `batch_summary.py` + strict Mode C display protocol — progress-counter-only while a batch runs, full template only for ≥6 (one-line reason for <6/skips), deterministic Chinese end-of-batch chart relayed verbatim. Fixes cross-session batch-output drift (improvised tables, English wrap-ups, mid-batch detail dumps).
+
 ## 2026-07-27
 - Add `status_report.py` + analyze-job **Mode G** — deterministic job-hunt status snapshot (funnel + deltas vs previous run, interviews, bands, top targets); replaces error-prone ad-hoc board parsing. `.status-history.json` gitignored. Design page synced (scripts 3→4).
 

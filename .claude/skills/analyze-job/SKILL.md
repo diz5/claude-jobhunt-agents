@@ -87,13 +87,18 @@ Run **one `job-analyzer` subagent** for the single job. It writes `job-analyses/
 
 ## Mode C — Batch (multiple postings)
 
-When the user pastes more than one job at once:
-1. **Fan out**: spawn one `job-analyzer` subagent per job **in parallel** (one Agent call each, in a single message). Give each the company + role + JD text/URL.
-2. Each subagent researches, writes its own `job-analyses/<Company>.md`, and returns a scoreboard row.
-3. **Stage in one write**: collect the returned rows into one temp file, then run a **single** `python3 .claude/skills/analyze-job/scoreboard.py append --rows-file <tmp>` to append them to `_pending.md`. (One atomic append, no races.) `append` **auto-drops any row scoring < 6** and reports which — you don't need to pre-filter, but do call out the dropped ones. The actual re-sort happens at the next session's Step 0a flush.
-4. Report a short summary in chat: each new company with its 推荐分 and one-liner (from its returned row). Separate the **入榜 (≥6)** ones from any **未入榜 (<6)** ones so the user sees what was skipped. Note the ≥6 ones are staged and will land in the ranking at next session start.
+When the user pastes more than one job at once, follow this **strict display protocol** — it must look the SAME in every session (past sessions each improvised their own tables/languages/verdict styles; that inconsistency is exactly what this protocol kills):
 
-**状态 in batch:** all newly-analyzed rows default to **已投** (see rule above). If the user says some of the batch aren't applied yet, mark ONLY those as `未投` — ask which ones if it's ambiguous.
+1. **Fan out**: spawn one `job-analyzer` subagent per job **in parallel** (one Agent call each, in a single message). Then post ONE line: `本批 N 个：A、B、C…（并行分析中）`.
+2. **Progress counter ONLY while waiting.** As each subagent returns, output a single line — `进度 k/N ✅ <公司> <推荐分>` — and NOTHING else. **Do NOT render any template, table, verdict, or commentary until ALL N are back.** Partial detail mid-batch is forbidden.
+3. **When all N are back, display in this exact order:**
+   - Jobs **≥6**, sorted by 推荐分 descending: render each with the mandatory Mode A ⭐ template.
+   - Jobs **<6** and skips (staffing agency / hidden employer / hard gate): **ONE line each** — `❌ <公司> <分或—> — <一句原因>`. No template, no details for these.
+4. **Stage in one write**: collect the ≥6 rows into one temp file → a single `python3 .claude/skills/analyze-job/scoreboard.py append --rows-file <tmp>` (it auto-drops <6 as a safety net). Re-sort happens at next session's Step 0a flush.
+5. **Batch chart — deterministic, MANDATORY closer**: run `python3 .claude/skills/analyze-job/batch_summary.py <每个分析文件名或公司名>` and **relay its output VERBATIM** — never draw your own summary table (hand-drawn wide tables garble in the terminal and drift between sessions). The script prints the standardized 中文 chart: per job ⭐总分 + 适配(分+短语) + 薪资(披露区间 → 争取目标) + 风险(分+短语), plus the <6 section. Append one line per agency-skip the script can't know about.
+6. **Language: 全程中文**（专有名词/引文除外）。If you catch yourself writing English prose in this mode, stop and rewrite in Chinese — English wrap-ups are a known failure mode.
+
+**状态 in batch:** all newly-analyzed rows default to **已投** (see rule above); Mode F-sourced roles default 未投. If the user says some of the batch aren't applied yet, mark ONLY those as `未投` — ask which ones if it's ambiguous.
 
 ## Mode D — Status update (no re-analysis)
 

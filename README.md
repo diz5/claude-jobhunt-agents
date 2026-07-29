@@ -59,6 +59,7 @@ and a batch of analyses doesn't block on a full re-sort.
 | `.claude/skills/analyze-job/SKILL.md` | The orchestrator playbook (analyze / batch / application-answer / status / refresh / sourcing modes). |
 | `.claude/skills/analyze-job/scoreboard.py` | Deterministic scoreboard bookkeeping (CLI: `append`/`flush`/`status`/`refresh`/`remove`/`prune`/`state`/`check`). |
 | `.claude/skills/analyze-job/status_report.py` | Deterministic job-hunt status snapshot — funnel + deltas, live interviews, score bands, top unapplied targets. |
+| `.claude/skills/analyze-job/batch_summary.py` | Deterministic end-of-batch chart — per-job fit/salary/risk sub-scores in a fixed Chinese format, so batch output never drifts between sessions. |
 | `.claude/agents/job-analyzer.md` | Subagent that researches + scores one posting and returns a ⭐ report + scoreboard row. |
 | `.claude/agents/role-scout.md` | Subagent that scouts a company's careers page / ATS for a better-fitting role when the analyzed one missed. |
 | `.claude/agents/job-sourcer.md` | Subagent that proactively sweeps ATS job boards (Greenhouse/Lever/Ashby/Workday) for new postings matching your profile. |
