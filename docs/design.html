@@ -211,7 +211,7 @@
     <h1><span class="mono">claude-jobhunt-agents</span></h1>
     <p class="lede">A multi-agent job-hunt workspace: skills route the work, subagents do the judgment, deterministic scripts own the bookkeeping — and a hard boundary keeps every piece of your real data out of the public repo.</p>
     <div class="chips">
-      <span class="chip"><span class="dot"></span>7 agents · 3 skills · 4 scripts</span>
+      <span class="chip"><span class="dot"></span>7 agents · 3 skills · 5 scripts</span>
       <span class="chip">public tooling · private data</span>
       <span class="chip">LLM for judgment · code for mechanics</span>
     </div>
@@ -368,9 +368,10 @@
         </ul>
       </div>
       <div>
-        <p class="col-head"><span class="kind k-script">script</span> Mechanics ×4</p>
+        <p class="col-head"><span class="kind k-script">script</span> Mechanics ×5</p>
         <ul class="comp">
           <li><div class="c-name">scoreboard.py</div><div class="c-desc">Owns every board write — deterministic, atomic.</div><div class="c-ops">append flush status refresh remove prune state check</div></li>
+          <li><div class="c-name">batch_summary.py</div><div class="c-desc">End-of-batch chart: parses analysis files' template and prints standardized fit/salary/risk scores per job.</div></li>
           <li><div class="c-name">status_report.py</div><div class="c-desc">Job-hunt snapshot — funnel counts, deltas vs previous run, interviews, score bands, top unapplied.</div></li>
           <li><div class="c-name">publish_guard.py</div><div class="c-desc">Secret scanner; exit ≠ 0 blocks the commit.</div></li>
           <li><div class="c-name">list_sessions.py</div><div class="c-desc">Backs the list-sessions skill.</div></li>
