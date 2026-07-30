@@ -9,7 +9,9 @@ Help the candidate evaluate a job/company or answer an application question. **L
 
 ## Step 0a — Flush the pending buffer (run ONCE at the start of a session, before anything else)
 
-New analyses are staged in `job-analyses/_pending.md` and NOT written to the scoreboard live. So the first time this skill runs in a session, run **`python3 .claude/skills/analyze-job/scoreboard.py flush --date <today>`**. It merges the buffer into the board, re-sorts by 推荐分, re-numbers 排名, skips exact 公司+岗位 duplicates, updates the count/date, and clears the buffer — all deterministically in one atomic write. Relay its one-line output.
+New analyses are staged in `job-analyses/_pending.md` and NOT written to the scoreboard live. So the first time this skill runs in a session, run **`python3 .claude/skills/analyze-job/scoreboard.py flush --date <today> --session-name "<this session's name>"`**. It merges the buffer into the board, re-sorts by 推荐分, re-numbers 排名, skips exact 公司+岗位 duplicates, updates the count/date, and clears the buffer — all deterministically in one atomic write. Relay its one-line output.
+
+- **`--session-name`**: pass this session's /rename title (shown in the session-reminder) so the merge audit log records who merged. If you don't know the name, omit it — the log still records the session id automatically (from `$CLAUDE_CODE_SESSION_ID`). Every flush appends one line to `.merge-log.md` (gitignored): `时间 · session名 · session id · merged/dup/cutoff/total`.
 
 Only do this once per session (the first analysis-related turn). Skip if already flushed this session.
 
@@ -91,12 +93,11 @@ When the user pastes more than one job at once, follow this **strict display pro
 
 1. **Fan out**: spawn one `job-analyzer` subagent per job **in parallel** (one Agent call each, in a single message). Then post ONE line: `本批 N 个：A、B、C…（并行分析中）`.
 2. **Progress counter ONLY while waiting.** As each subagent returns, output a single line — `进度 k/N ✅ <公司> <推荐分>` — and NOTHING else. **Do NOT render any template, table, verdict, or commentary until ALL N are back.** Partial detail mid-batch is forbidden.
-3. **When all N are back, display in this exact order:**
-   - Jobs **≥6**, sorted by 推荐分 descending: render each with the mandatory Mode A ⭐ template.
-   - Jobs **<6** and skips (staffing agency / hidden employer / hard gate): **ONE line each** — `❌ <公司> <分或—> — <一句原因>`. No template, no details for these.
+3. **When all N are back — the ENTIRE display is ONE deterministic call**: run
+   `python3 .claude/skills/analyze-job/batch_summary.py --full <本批各分析文件名或公司名>`
+   and **relay its output VERBATIM**. It prints, in order: every ≥6 job's full ⭐ analysis (highest score first, straight from the analysis files — identical in every session, always 中文), one `❌` line per <6 job (no details for those), and the standardized batch chart (每岗 适配/薪资/风险 子分 + 披露区间→争取目标). **You render NOTHING yourself in this phase** — no templates, no hand-drawn tables (they garble in the terminal), no rephrasing. The only thing you may append: one `❌` line per agency/hidden-employer skip the script can't know about, plus ≤3 lines of closing judgment (中文).
 4. **Stage in one write**: collect the ≥6 rows into one temp file → a single `python3 .claude/skills/analyze-job/scoreboard.py append --rows-file <tmp>` (it auto-drops <6 as a safety net). Re-sort happens at next session's Step 0a flush.
-5. **Batch chart — deterministic, MANDATORY closer**: run `python3 .claude/skills/analyze-job/batch_summary.py <每个分析文件名或公司名>` and **relay its output VERBATIM** — never draw your own summary table (hand-drawn wide tables garble in the terminal and drift between sessions). The script prints the standardized 中文 chart: per job ⭐总分 + 适配(分+短语) + 薪资(披露区间 → 争取目标) + 风险(分+短语), plus the <6 section. Append one line per agency-skip the script can't know about.
-6. **Language: 全程中文**（专有名词/引文除外）。If you catch yourself writing English prose in this mode, stop and rewrite in Chinese — English wrap-ups are a known failure mode.
+5. **Language: 全程中文**（专有名词/引文除外）。If you catch yourself writing English prose in this mode, stop and rewrite in Chinese — English wrap-ups are a known failure mode.
 
 **状态 in batch:** all newly-analyzed rows default to **已投** (see rule above); Mode F-sourced roles default 未投. If the user says some of the batch aren't applied yet, mark ONLY those as `未投` — ask which ones if it's ambiguous.
 

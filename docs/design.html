@@ -276,7 +276,7 @@
       </div>
     </div>
     <div class="callout">
-      <b>The board pipeline.</b> New rows are appended to a <span class="mono">_pending.md</span> staging buffer, then merged into the board in one atomic <span class="mono">flush</span> — so concurrent sessions never clobber it. On the way in, <b>a hard min-score gate drops anything scoring&nbsp;&lt;&nbsp;6</b>, ties share a rank, and every mutation stamps <span class="mono">.board-state.json</span> so a long-running session can <span class="mono">refresh</span> and re-read instead of reasoning from stale memory.
+      <b>The board pipeline.</b> New rows are appended to a <span class="mono">_pending.md</span> staging buffer, then merged into the board in one atomic <span class="mono">flush</span> — so concurrent sessions never clobber it. On the way in, <b>a hard min-score gate drops anything scoring&nbsp;&lt;&nbsp;6</b>, ties share a rank, and every mutation stamps <span class="mono">.board-state.json</span> so a long-running session can <span class="mono">refresh</span> and re-read instead of reasoning from stale memory. Each <span class="mono">flush</span> appends an audit line to <span class="mono">.merge-log.md</span> — recording the session (via <span class="mono">--session-name</span> flag) and merge counts for concurrent-session visibility.
     </div>
   </section>
 
@@ -332,6 +332,7 @@
           <li>job-scoreboard.md</li>
           <li>job-analyses/ <span class="tag">per-company</span></li>
           <li>.board-state.json <span class="tag">marker</span></li>
+          <li>.merge-log.md <span class="tag">audit log</span></li>
         </ul>
         <div class="grp">Docs + notes</div>
         <ul class="filelist">

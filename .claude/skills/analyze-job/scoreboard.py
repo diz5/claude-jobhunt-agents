@@ -38,6 +38,7 @@ ROOT = os.path.dirname(os.path.abspath(os.path.join(__file__, "..", "..", ".."))
 BOARD = os.path.join(ROOT, "job-scoreboard.md")
 PENDING = os.path.join(ROOT, "job-analyses", "_pending.md")
 STATE = os.path.join(ROOT, ".board-state.json")  # tiny sidecar: last merge time + counts (gitignored)
+MERGE_LOG = os.path.join(ROOT, ".merge-log.md")  # append-only audit log: who flushed & when (gitignored)
 
 SCORE_RE = re.compile(r"\*\*([0-9]+(?:\.[0-9]+)?)\*\*")
 
@@ -128,6 +129,31 @@ def stamp_state(last_op):
     except Exception as e:
         print(f"(warning: could not write {os.path.basename(STATE)}: {e})", file=sys.stderr)
 
+def log_merge(session_name, session_id, merged, skipped, low, total):
+    """Append ONE line to .merge-log.md recording who ran this flush and when.
+
+    Answers 'who merged the board, and when' for future audits. Uses a plain append
+    (not the atomic read-modify-write the board uses) so concurrent sessions can each
+    log without clobbering each other's lines. Session id comes from the
+    CLAUDE_CODE_SESSION_ID env var Claude Code sets; the human-readable session name
+    (a /rename title) isn't in the environment, so the caller passes it via --session-name.
+    Best-effort: a logging failure must never break the merge itself.
+    """
+    try:
+        ts = datetime.datetime.now().isoformat(timespec="seconds")
+        name = session_name or os.environ.get("CLAUDE_CODE_SESSION_NAME") or "unnamed"
+        sid = session_id or os.environ.get("CLAUDE_CODE_SESSION_ID") or "unknown"
+        line = (f"- {ts} · {name} · {sid} · merged {len(merged)}, "
+                f"dup {len(skipped)}, <cutoff {len(low)}, board total {total}\n")
+        header_needed = not os.path.exists(MERGE_LOG)
+        with open(MERGE_LOG, "a", encoding="utf-8") as f:
+            if header_needed:
+                f.write("# 合并日志 (merge audit log) — append-only; 谁在何时把 _pending 合并进 board\n")
+                f.write("# 每行: - <时间> · <session 名> · <session id> · merged N, dup N, <cutoff N, board total N\n\n")
+            f.write(line)
+    except Exception as e:
+        print(f"(warning: could not write {os.path.basename(MERGE_LOG)}: {e})", file=sys.stderr)
+
 # ---------- ops ----------
 
 def op_append(args):
@@ -186,6 +212,8 @@ def op_flush(args):
     # clear pending -> keep only the non-row (comment header) lines
     write_atomic(PENDING, [l for l in pend if not is_row(l)])
     stamp_state("flush")
+    log_merge(getattr(args, "session_name", None), os.environ.get("CLAUDE_CODE_SESSION_ID"),
+              merged, skipped, low, total)
     msg = f"merged {len(merged)}; board total = {total}"
     if skipped:
         msg += f"; skipped dup: {skipped}"
@@ -312,7 +340,7 @@ def main():
     sub = p.add_subparsers(dest="op", required=True)
 
     a = sub.add_parser("append"); a.add_argument("--rows-file"); a.set_defaults(fn=op_append)
-    f = sub.add_parser("flush"); f.add_argument("--date"); f.set_defaults(fn=op_flush)
+    f = sub.add_parser("flush"); f.add_argument("--date"); f.add_argument("--session-name"); f.set_defaults(fn=op_flush)
     s = sub.add_parser("status")
     s.add_argument("--company", required=True); s.add_argument("--role", required=True)
     s.add_argument("--set", required=True); s.add_argument("--date"); s.set_defaults(fn=op_status)

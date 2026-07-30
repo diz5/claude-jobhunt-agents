@@ -70,7 +70,8 @@ def parse(path):
     def grab(pattern):
         m = re.search(pattern, text)
         return m.groups() if m else None
-    d = {'file': os.path.basename(path), 'name': os.path.splitext(os.path.basename(path))[0]}
+    d = {'file': os.path.basename(path), 'name': os.path.splitext(os.path.basename(path))[0],
+         'text': text.strip()}
     g = grab(r'⭐\s*推荐分[：:]\s*([\d.]+)\s*/\s*10\s*[—-]+\s*(.+)')
     d['score'], d['verdict'] = (float(g[0]), g[1].strip()) if g else (None, '')
     for key, label in (('fit', '履历适配度'), ('pay', '薪资性价比'), ('risk', r'公司/风险')):
@@ -88,6 +89,10 @@ def main():
     ap.add_argument('names', nargs='+', help='company names or analysis file paths')
     ap.add_argument('--min-score', type=float, default=6.0)
     ap.add_argument('--width', type=int, default=46, help='max chars per note line')
+    ap.add_argument('--full', action='store_true',
+                    help='also print each ≥min-score job\'s FULL analysis (verbatim from its '
+                         'file, highest score first) before the chart — the complete '
+                         'end-of-batch display in one deterministic call')
     args = ap.parse_args()
 
     jobs, missing = [], []
@@ -98,6 +103,20 @@ def main():
     jobs.sort(key=lambda d: -(d['score'] or 0))
     kept = [d for d in jobs if (d['score'] or 0) >= args.min_score]
     low = [d for d in jobs if (d['score'] or 0) < args.min_score]
+
+    if args.full:
+        for d in kept:
+            print(f"{'━' * 30}\n▍{d['name']}\n")
+            print(d['text'])
+            print()
+        if low:
+            print('━' * 30)
+            for d in low:
+                reason = clip(d['fit_note'] if d['fit_note'] != '⚠️未解析' else d['verdict'],
+                              args.width + 14)
+                print(f"❌ {d['name']} {d['score']}/10 — {reason}（未入榜，不展开）")
+            print()
+        print('━' * 30)
 
     print(f"📋 本批 {len(jobs)} 个分析汇总（按分排序）")
     for i, d in enumerate(kept):
