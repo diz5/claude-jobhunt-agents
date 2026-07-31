@@ -4,6 +4,9 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 `git log` gives you, kept human-readable. **Rule: every commit to `main` adds its line here in
 the same commit** (the pre-push review covers it).
 
+## 2026-07-30
+- `batch_summary.py`: chart is now a markdown TABLE (公司/⭐/适配/薪资/风险); 💰-block parsed structurally (fixes ⚠️未解析 on phrasing variants); range-aware money extraction (comma/K-notation ranges as one token); wider note cells. Mode C gains a stall-recovery step (resume = rerun display+stage from disk, never re-analyze).
+
 ## 2026-07-29
 - Add `CLAUDE.md` project floor rules (loaded in EVERY session): re-read the playbook before first analysis, 中文-only analysis output, no Edit on board/buffer, Mode C verbatim protocol — the antidote to stale-playbook sessions.
 - `batch_summary.py --full` — the entire end-of-batch display in one deterministic call: full ⭐ analyses for ≥6 (from files, highest first) + ❌ one-liners for <6 + the chart. Mode C now renders nothing by hand.
