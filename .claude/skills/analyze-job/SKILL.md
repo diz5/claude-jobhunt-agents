@@ -9,9 +9,9 @@ Help the candidate evaluate a job/company or answer an application question. **L
 
 ## Step 0a — Flush the pending buffer (run ONCE at the start of a session, before anything else)
 
-New analyses are staged in `job-analyses/_pending.md` and NOT written to the scoreboard live. So the first time this skill runs in a session, run **`python3 .claude/skills/analyze-job/scoreboard.py flush --date <today> --session-name "<this session's name>"`**. It merges the buffer into the board, re-sorts by 推荐分, re-numbers 排名, skips exact 公司+岗位 duplicates, updates the count/date, and clears the buffer — all deterministically in one atomic write. Relay its one-line output.
+New analyses are staged in `job-analyses/_pending.md` and NOT written to the scoreboard live. So the first time this skill runs in a session, run **`python3 .claude/skills/analyze-job/scoreboard.py flush --date <today>`**. It merges the buffer into the board, re-sorts by 推荐分, re-numbers 排名, skips exact 公司+岗位 duplicates, updates the count/date, and clears the buffer — all deterministically in one atomic write. Relay its one-line output.
 
-- **`--session-name`**: pass this session's /rename title (shown in the session-reminder) so the merge audit log records who merged. If you don't know the name, omit it — the log still records the session id automatically (from `$CLAUDE_CODE_SESSION_ID`). Every flush appends one line to `.merge-log.md` (gitignored): `时间 · session名 · session id · merged/dup/cutoff/total`.
+- **Merge audit log**: every flush appends one line to `.merge-log.md` (gitignored) recording which session merged and when — `时间 · session id · merged/dup/cutoff/total`. The session id is captured automatically from `$CLAUDE_CODE_SESSION_ID`; nothing to pass.
 
 Only do this once per session (the first analysis-related turn). Skip if already flushed this session.
 

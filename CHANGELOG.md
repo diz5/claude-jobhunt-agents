@@ -4,6 +4,9 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 `git log` gives you, kept human-readable. **Rule: every commit to `main` adds its line here in
 the same commit** (the pre-push review covers it).
 
+## 2026-07-31
+- Merge audit log simplified: drop the `--session-name` flag (sessions never passed it — log showed "unnamed"); `.merge-log.md` records the always-available `$CLAUDE_CODE_SESSION_ID` only. SKILL/design page synced.
+
 ## 2026-07-30
 - `batch_summary.py`: chart is now a markdown TABLE (公司/⭐/适配/薪资/风险); 💰-block parsed structurally (fixes ⚠️未解析 on phrasing variants); range-aware money extraction (comma/K-notation ranges as one token); wider note cells. Mode C gains a stall-recovery step (resume = rerun display+stage from disk, never re-analyze).
 
