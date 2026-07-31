@@ -105,7 +105,7 @@ When the user pastes more than one job at once, follow this **strict display pro
 ## Mode D — Status update (no re-analysis)
 
 When the user reports an application-status change (applied / interviewing / rejected / offer):
-1. Run `python3 .claude/skills/analyze-job/scoreboard.py status --company "X" --role "Y" --set "<value>"` (Applied → `已投 MM-DD` today; Interviewing → `面试中`; Rejected/ghosted → `已拒`/`已挂`; Offer → `Offer`). It locates the posting by 公司+岗位 (board or `_pending.md`) and edits only that cell; if the company has several rows and the role is ambiguous, it lists them instead of guessing — refine and re-run. Relay its one-line output.
+1. Run `python3 .claude/skills/analyze-job/scoreboard.py status --company "X" --role "Y" --set "<value>"` (Applied → `已投`; Interviewing → `面试中`; Rejected/ghosted → `已拒`/`已挂`; Offer → `Offer`). **The script auto-stamps today's date** on every status value — don't add dates yourself. If the user mentions HOW the contact happened, pass `--channel cold|referral|recruiter|inbound` (记渠道 — the most predictive variable for outcome analytics); omit when unknown, never guess. It locates the posting by 公司+岗位 (board or `_pending.md`) and edits only that cell; if the company has several rows and the role is ambiguous, it lists them instead of guessing — refine and re-run. Relay its one-line output.
 2. If the keeper reports the company isn't found anywhere, tell the user it hasn't been analyzed — offer to analyze it first.
 
 ## Mode B — Application Answer

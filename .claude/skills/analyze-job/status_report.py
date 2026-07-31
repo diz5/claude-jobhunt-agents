@@ -134,6 +134,36 @@ def main():
         bands['8+' if s >= 8 else '7-7.9' if s >= 7 else '6-6.9' if s >= 6 else '<6'] += 1
     print(f"   分布 ≥8: {bands['8+']} · 7档: {bands['7-7.9']} · 6档: {bands['6-6.9']} · <6: {bands['<6']}")
 
+    # ── outcomes: conversion by segment (universe = every row that was ever applied) ──
+    def loc_class(role):
+        if re.search(r'remote|远程', role, re.I):
+            return '远程'
+        if re.search(r'Irving|Dallas|Frisco|Plano|Richardson|Southlake|Fort Worth|Addison|McKinney|DFW', role, re.I):
+            return 'DFW本地'
+        return '异地现场'
+
+    def band_of(s):
+        s = s or 0
+        return '8+' if s >= 8 else '7档' if s >= 7 else '6档' if s >= 6 else '<6'
+
+    universe = [r for r in rows if r['bucket'] in ('applied', 'interview', 'offer', 'dead')]
+    if universe:
+        def seg(name, subset):
+            n = len(subset)
+            itv = sum(1 for r in subset if r['bucket'] in ('interview', 'offer'))
+            rej = sum(1 for r in subset if r['bucket'] == 'dead')
+            return f"{name} 投{n}/拒{rej}/面{itv}({itv / n * 100:.0f}%)"
+        print(f"\n📈 结果转化（已投过的 {len(universe)} 个；面试率=面试÷已投）:")
+        order = ['8+', '7档', '6档', '<6', 'DFW本地', '远程', '异地现场']
+        for dim, keyf in (('分数档', lambda r: band_of(r['score'])),
+                          ('地点  ', lambda r: loc_class(r['role']))):
+            groups = {}
+            for r in universe:
+                groups.setdefault(keyf(r), []).append(r)
+            parts = [seg(k, groups[k]) for k in
+                     sorted(groups, key=lambda k: order.index(k) if k in order else 99)]
+            print(f"   按{dim}: " + ' · '.join(parts))
+
     live = sorted((r for r in rows if r['bucket'] in ('interview', 'offer')),
                   key=lambda r: -(r['score'] or 0))
     if live:

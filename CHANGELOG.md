@@ -5,6 +5,7 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 the same commit** (the pre-push review covers it).
 
 ## 2026-07-31
+- Outcome analytics: `status_report.py` gains a 结果转化 section (interview/rejection conversion by score band and DFW-local/remote/onsite); `scoreboard.py status` now auto-date-stamps every status change and accepts `--channel cold|referral|recruiter|inbound` — data discipline for future time-to-response and channel analysis.
 - Merge audit log simplified: drop the `--session-name` flag (sessions never passed it — log showed "unnamed"); `.merge-log.md` records the always-available `$CLAUDE_CODE_SESSION_ID` only. SKILL/design page synced.
 
 ## 2026-07-30

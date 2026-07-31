@@ -224,19 +224,31 @@ def _find(lines, company, role):
     return [i for i, l in enumerate(lines)
             if is_row(l) and c in company_cell(l) and r in role_cell(l)]
 
+STATUS_DATE_KEYS = ("已投", "已拒", "已挂", "面试", "Offer")
+CHANNEL_TAGS = {"cold": "冷投", "referral": "内推", "recruiter": "猎头", "inbound": "对方主动"}
+
 def op_status(args):
+    val = args.set.strip()
+    # Data discipline: every status change carries a date (needed for time-to-response
+    # analytics later). Auto-stamp today unless the value already carries MM-DD.
+    if any(k in val for k in STATUS_DATE_KEYS) and not re.search(r"\d{2}-\d{2}", val):
+        val = f"{val} {args.date or datetime.date.today().strftime('%m-%d')}"
+    if getattr(args, "channel", None):
+        tag = CHANNEL_TAGS.get(args.channel, args.channel)
+        if tag not in val:
+            val = f"{val}·{tag}"
     for path in (BOARD, PENDING):
         lines = read(path)
         hits = _find(lines, args.company, args.role)
         if len(hits) == 1:
             c = cells(lines[hits[0]])
-            c[4] = f" {args.set} "
+            c[4] = f" {val} "
             lines[hits[0]] = "|".join(c)
             if path == BOARD:
                 lines = update_date(lines, args.date)
             write_atomic(path, lines)
             stamp_state("status")
-            print(f"set 状态 = {args.set} for {args.company} / {args.role}  (in {os.path.basename(path)})")
+            print(f"set 状态 = {val} for {args.company} / {args.role}  (in {os.path.basename(path)})")
             return
         if len(hits) > 1:
             print(f"AMBIGUOUS — {len(hits)} rows match in {os.path.basename(path)}; refine 岗位:")
@@ -341,7 +353,8 @@ def main():
     f = sub.add_parser("flush"); f.add_argument("--date"); f.set_defaults(fn=op_flush)
     s = sub.add_parser("status")
     s.add_argument("--company", required=True); s.add_argument("--role", required=True)
-    s.add_argument("--set", required=True); s.add_argument("--date"); s.set_defaults(fn=op_status)
+    s.add_argument("--set", required=True); s.add_argument("--date")
+    s.add_argument("--channel", choices=list(CHANNEL_TAGS)); s.set_defaults(fn=op_status)
     r = sub.add_parser("refresh")
     r.add_argument("--row", required=True); r.add_argument("--date"); r.set_defaults(fn=op_refresh)
     rm = sub.add_parser("remove")
