@@ -38,6 +38,7 @@ Paste a job description (or a company + role). The system:
 ├── ⚙️ scoreboard.py (script)        MECHANICAL: append / flush / status / refresh / remove / prune / state / check
 ├── 🎤 interview-prep (skill)        the playbook: recruiter-screen mock (interactive) + prep pack
 ├── 📝 interview-prep-writer (agent) JUDGMENT: research + write one company's recruiter-screen pack
+├── 🕵️ interview-intel (agent)       JUDGMENT: recent-面经 research for one company×stage (budgeted)
 ├── 🛡️ publish-guard (agent+script)  verifies no personal data before you publish
 └── 📐 design-doc-writer (agent)     keeps docs/design.html in sync with the tooling (low-cost)
 ```
@@ -67,6 +68,8 @@ and a batch of analyses doesn't block on a full re-sort.
 | `.claude/agents/publish-guard.md` | Read-only agent that verifies the repo is safe to publish. |
 | `.claude/skills/interview-prep/SKILL.md` | Recruiter/HR-screen playbook: interactive mock screen + prep-pack generation. |
 | `.claude/agents/interview-prep-writer.md` | Subagent that researches + writes one company's recruiter-screen prep pack. |
+| `.claude/agents/interview-intel.md` | Subagent that researches one company×stage's recent (≤6mo) interview experiences (面经) under a strict search budget. |
+| `.claude/hooks/web_budget_guard.py` | PreToolUse hook: hard cap on WebSearch/WebFetch calls per agent session — deterministic runaway protection (wired in `.claude/settings.json`). |
 | `.claude/agents/design-doc-writer.md` | Low-cost agent that keeps `docs/design.html` in sync with the tooling (surgical edits). |
 | `.claude/skills/list-sessions/` | Utility skill: list past Claude Code sessions for the project. |
 | `publish_guard.py` | The deterministic secret scanner the guard agent runs. |
@@ -98,12 +101,16 @@ claude-jobhunt-agents/
 │   └── Acme-Corp-interview.md      # sample recruiter-screen prep pack
 └── .claude/
     ├── settings.example.json       # copy → .claude/settings.local.json
+    ├── settings.json               # shipped project hooks (web-budget guard)
+    ├── hooks/
+    │   └── web_budget_guard.py      # hard cap on web calls per agent session
     ├── agents/
     │   ├── job-analyzer.md          # subagent: research + score one posting
     │   ├── role-scout.md            # subagent: scout a better-fitting role at one company
     │   ├── job-sourcer.md           # subagent: sweep job boards for new fitting postings
     │   ├── application-answerer.md  # subagent: draft a job-application answer
     │   ├── interview-prep-writer.md # subagent: write one company's recruiter-screen pack
+    │   ├── interview-intel.md       # subagent: recent-面经 research (budgeted)
     │   ├── publish-guard.md         # agent: verify repo is safe to publish
     │   └── design-doc-writer.md     # agent: keep docs/design.html in sync
     └── skills/

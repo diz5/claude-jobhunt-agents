@@ -1,6 +1,6 @@
 ---
 name: interview-prep
-description: Prepare the candidate for the RECRUITER / HR phone screen of a company they're interviewing with. Two modes — an interactive mock screen (role-play the recruiter, one question at a time, grade each answer) and a generated prep pack (delegated to the interview-prep-writer subagent). Use when the user says "mock interview", "recruiter screen", "HR screen prep", "help me prep for <Company>'s call", "practice interview questions". Scope today: recruiter/HR screen only (coding / system-design / behavioral-loop are future modes).
+description: Prepare the candidate for interviews at a company — recruiter/HR screen (interactive mock + prep pack) AND technical rounds (OA / coding screen / onsite / system design, powered by recent-面经 research via the interview-intel subagent). Use when the user says "mock interview", "recruiter screen", "prep me for <Company>", "OA prep", "面经", "coding/system-design interview prep". Behavioral-loop deep prep is still a future mode.
 ---
 
 # Interview Prep — Recruiter / HR Screen
@@ -25,8 +25,10 @@ badmouth the current employer, anchor comp low, or ramble past ~90 seconds.
 - **Mock screen** — "mock interview", "practice", "run me through a recruiter call", "quiz me" → **Mode A**.
 - **Prep pack** — "prep pack", "prep me for <Company>", "what will they ask", "write my talking points"
   → **Mode B** (delegate to the `interview-prep-writer` subagent).
-- **Both / unsure** — offer both in one line; default to generating the pack first (Mode B), then
-  offer to run a mock (Mode A) against it.
+- **Technical rounds** — "OA prep", "面经", "coding screen / onsite / system design for <Company>"
+  → **Mode C** (intel via the `interview-intel` subagent, then a prep plan).
+- **Both / unsure** — offer the options in one line; default to the pack (Mode B) for a new
+  recruiter screen, Mode C when a technical round is scheduled.
 
 ## Mode A — Interactive mock screen (main agent role-plays; do NOT delegate)
 A subagent can't pause for the candidate's answers, so **you (main agent) run this turn-by-turn.**
@@ -62,10 +64,26 @@ writes `job-analyses/<Company>-interview.md` (gitignored), and returns the full 
 2. Confirm in one line that it was saved (`job-analyses/<Company>-interview.md`). Don't re-print file diffs.
 3. Offer to **run a mock (Mode A)** against it next.
 
+## Mode C — Technical rounds (OA / coding screen / onsite / system design)
+
+1. **Intel first**: spawn ONE `interview-intel` subagent per company × stage the user named —
+   **never spawn it unprompted, never fan out beyond what was asked** (面经 research costs real
+   web calls; a harness hook hard-caps each agent's budget). It researches ≤6-month 面经
+   (一亩三分地/Reddit/Glassdoor/LeetCode Discuss…), writes `job-analyses/<Company>-intel.md`,
+   and returns structured intel including a 待本人阅读 list of login-walled threads.
+2. **Relay the intel verbatim-ish** (compact 中文), including the coverage statement — what it
+   could NOT verify matters as much as what it found.
+3. **Then build the prep plan** against `profile.local.md`: map reported question themes to his
+   strong stories and known gaps (e.g. Python-hard companies, AWS absence, frontend weakness);
+   if his leetcode practice repo is reachable (`~/dev/leetcode`, PROGRESS.md), align drill
+   suggestions with what he's already covered. Concrete: which topics to drill in what order,
+   which of his stories answer which system-design/behavioral themes, what to clarify with the
+   recruiter (language options, format).
+4. **Offer next steps**: a timed OA drill plan, or a system-design mock (Mode A style, turn-based).
+
 ## Global rules
 - **Be concise.** Bullets, short sentences, no filler.
 - **Ground everything in `profile.local.md`** + (if present) the company analysis — no invented
   employers, comp, or projects. Cite sources for company facts.
 - Private prep lives in gitignored `job-analyses/` — never write prep content into a tracked file.
-- Scope is the recruiter/HR screen. If asked for coding / system-design / behavioral-loop prep, say
-  those are separate modes not yet built, and offer the recruiter-screen prep instead.
+- Behavioral-loop deep prep is a future mode; offer recruiter-screen (A/B) or technical (C) prep instead.
