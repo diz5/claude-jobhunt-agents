@@ -6,7 +6,7 @@ the same commit** (the pre-push review covers it).
 
 ## 2026-07-31
 - Add `interview-intel` agent + interview-prep **Mode C** (technical rounds): researches one company×stage's recent (≤6mo) 面经 across 1point3acres/Reddit/Glassdoor/LeetCode Discuss under a strict budget (≤12 searches, ≤10 fetches, ≤3 per source; login walls listed for the candidate, never bypassed), then the skill builds a profile-aware prep plan.
-- Add `.claude/hooks/web_budget_guard.py` + shipped `.claude/settings.json`: PreToolUse hook hard-capping WebSearch/WebFetch at 40 calls per agent session (WEB_BUDGET_MAX to tune) — deterministic runaway protection for ALL research agents.
+- Add `.claude/hooks/web_budget_guard.py` + shipped `.claude/settings.json`: PreToolUse hook hard-capping WebSearch/WebFetch at 40 calls per agent session (WEB_BUDGET_MAX to tune) — deterministic runaway protection for ALL research agents. Design page synced (agents 7→8).
 - Outcome analytics: `status_report.py` gains a 结果转化 section (interview/rejection conversion by score band and DFW-local/remote/onsite); `scoreboard.py status` now auto-date-stamps every status change and accepts `--channel cold|referral|recruiter|inbound` — data discipline for future time-to-response and channel analysis.
 - Merge audit log simplified: drop the `--session-name` flag (sessions never passed it — log showed "unnamed"); `.merge-log.md` records the always-available `$CLAUDE_CODE_SESSION_ID` only. SKILL/design page synced.
 

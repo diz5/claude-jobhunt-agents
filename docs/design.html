@@ -211,7 +211,7 @@
     <h1><span class="mono">claude-jobhunt-agents</span></h1>
     <p class="lede">A multi-agent job-hunt workspace: skills route the work, subagents do the judgment, deterministic scripts own the bookkeeping — and a hard boundary keeps every piece of your real data out of the public repo.</p>
     <div class="chips">
-      <span class="chip"><span class="dot"></span>7 agents · 3 skills · 5 scripts</span>
+      <span class="chip"><span class="dot"></span>8 agents · 3 skills · 6 scripts</span>
       <span class="chip">public tooling · private data</span>
       <span class="chip">LLM for judgment · code for mechanics</span>
     </div>
@@ -259,6 +259,7 @@
           <div class="node judge"><div class="n-name">job-analyzer</div><div class="n-desc">research + score one posting</div></div>
           <div class="node judge"><div class="n-name">application-answerer</div><div class="n-desc">draft one application answer</div></div>
           <div class="node judge"><div class="n-name">interview-prep-writer</div><div class="n-desc">recruiter-screen prep pack</div></div>
+          <div class="node judge"><div class="n-name">interview-intel</div><div class="n-desc">researches recent interview experiences</div></div>
         </div>
       </div>
       <div class="tier">
@@ -304,6 +305,8 @@
         <ul class="filelist">
           <li>README.md · LICENSE · .gitignore</li>
           <li>publish_guard.py · docs/design.html</li>
+          <li>.claude/hooks/*.py <span class="tag">guards</span></li>
+          <li>.claude/settings.json <span class="tag">config</span></li>
           <li>profile.example.md <span class="tag">template</span></li>
           <li>application-kit.example.md <span class="tag">template</span></li>
           <li>backup.example.sh <span class="tag">template</span></li>
@@ -357,25 +360,27 @@
         </ul>
       </div>
       <div>
-        <p class="col-head"><span class="kind k-agent">agent</span> Agents ×7</p>
+        <p class="col-head"><span class="kind k-agent">agent</span> Agents ×8</p>
         <ul class="comp">
           <li><div class="c-name">job-sourcer</div><div class="c-desc">Proactively scans ATS job boards for new postings matching the candidate's profile; returns ranked shortlist.</div></li>
           <li><div class="c-name">job-analyzer</div><div class="c-desc">Researches + scores one posting → ⭐ report + row.</div></li>
           <li><div class="c-name">application-answerer</div><div class="c-desc">Drafts a short, human application answer from the analysis + kit.</div></li>
           <li><div class="c-name">interview-prep-writer</div><div class="c-desc">Writes one company's recruiter-screen pack.</div></li>
+          <li><div class="c-name">interview-intel</div><div class="c-desc">Researches recent interview experiences for one company × stage.</div></li>
           <li><div class="c-name">publish-guard</div><div class="c-desc">Read-only leak check before publishing.</div></li>
           <li><div class="c-name">design-doc-writer</div><div class="c-desc">Keeps this design page in sync — surgical, low-cost.</div></li>
           <li><div class="c-name">role-scout</div><div class="c-desc">Scouts a company's careers page/ATS for better-fitting roles.</div></li>
         </ul>
       </div>
       <div>
-        <p class="col-head"><span class="kind k-script">script</span> Mechanics ×5</p>
+        <p class="col-head"><span class="kind k-script">script</span> Mechanics ×6</p>
         <ul class="comp">
           <li><div class="c-name">scoreboard.py</div><div class="c-desc">Owns every board write — deterministic, atomic.</div><div class="c-ops">append flush status refresh remove prune state check</div></li>
           <li><div class="c-name">batch_summary.py</div><div class="c-desc">End-of-batch chart: parses analysis files' template and prints standardized fit/salary/risk scores per job.</div></li>
           <li><div class="c-name">status_report.py</div><div class="c-desc">Job-hunt snapshot — funnel counts, deltas vs previous run, interviews, score bands, top unapplied.</div></li>
           <li><div class="c-name">publish_guard.py</div><div class="c-desc">Secret scanner; exit ≠ 0 blocks the commit.</div></li>
           <li><div class="c-name">list_sessions.py</div><div class="c-desc">Backs the list-sessions skill.</div></li>
+          <li><div class="c-name">web_budget_guard.py</div><div class="c-desc">PreToolUse hook — hard-caps WebSearch/WebFetch calls per session.</div></li>
         </ul>
       </div>
     </div>
