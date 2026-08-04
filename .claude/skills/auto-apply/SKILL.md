@@ -1,6 +1,6 @@
 ---
 name: auto-apply
-description: Prep and (optionally) submit job applications from the ranked scoreboard. Use when the user says "apply to X", "queue up applications", "auto-apply", "draft the answers for X", "fill the form for X", or wants to see which roles to apply to next. Picks roles off job-scoreboard.md, scaffolds a per-job packet, drafts human answers, and builds an autofill payload. Browser autofill/submit are gated (see Submit modes).
+description: Prep and (optionally) submit job applications from the ranked scoreboard. Use when the user says "apply to X", "queue up applications", "auto-apply", "draft the answers for X", "fill the form for X", or wants to see which roles to apply to next. Picks roles off job-scoreboard.md, scaffolds a per-job packet, drafts human answers, and builds a review-ready answer sheet you use to fill and submit the ATS form yourself. No automated form-filling or submission — you apply manually.
 ---
 
 # Auto-Apply
@@ -69,31 +69,25 @@ any `needs_confirm` questions the candidate must answer. Then set board state �
 ### Step 4 — Review + payload
 Show the user `answers.md` (this is the review surface — the answers, not the board). Once the
 candidate approves / edits, run `apply.py build-payload --slug …`. If it warns about unanswered
-questions, resolve them before proceeding. Set packet ready for fill; board state → depends on
-submit mode (see below).
+questions, resolve them before proceeding. Set packet ready; board state stays `草稿就绪`.
 
-### Step 5 — Autofill / submit  ⚠️ NOT YET IMPLEMENTED (Phase 2/3)
-The Playwright driver (`autofill.py`) and the submit gate are **not built yet**. Until they are:
-- Deliver `answers.md` + `payload.json` and tell the user to fill/submit manually, OR
-- If they ask to build it, that's Phase 2/3 work — say so; don't pretend to fill or submit.
-When built, this step opens the ATS URL, fills from `payload.json`, and follows the submit mode.
+### Step 5 — Apply manually (no automated autofill/submit — by design)
+The tool intentionally does **not** fill or submit forms for the candidate — we run no browser
+automation on their behalf. The pipeline ends with a review-ready answer sheet:
+- Deliver `answers.md` (the answers) + `payload.json` (field→value fill spec) + the ATS URL.
+- The candidate fills the ATS form themselves (copying from the sheet) and clicks Submit.
+- After they apply, record it: `scoreboard.py status … --set "已投 <MM-DD>"` and — if the role came
+  through the LinkedIn ledger — `seen.py mark --job-id … --status applied`.
 
-## Submit modes (capability exists for all three; default = manual)
-Set per packet via `init --submit-mode` (or the user's session default):
-- **`manual`** (default, safest) — driver fills every field and **stops at the submit button**.
-  The candidate reviews the filled form and clicks Submit themselves.
-- **`confirm`** — driver fills, screenshots the completed form, and submits **only after the
-  candidate explicitly OKs that specific job** in chat.
-- **`auto`** — driver fills and submits without per-job confirmation. Highest risk; use only
-  when the user has explicitly opted a batch into it.
-On a real submit: append to `run.log` and set board state
-`scoreboard.py status … --set "已投 <MM-DD>"`.
+(`apply.py`'s `submit_mode` field is a dormant record only; every application is submitted by the
+candidate. An autofill/submit driver was considered and dropped to avoid browser automation.)
 
 ## Rules
 - **Never fabricate identity or experience.** Answers come from `profile.local.md` +
   `application-kit.md`; identity from `applications/identity.json`. Missing data → flag it
   (`needs_confirm`), ask the candidate, never invent.
-- **Never auto-submit unless the packet's `submit_mode` says so.** When in doubt, `manual`.
+- **Never submit for the candidate.** The tool never fills or submits an application — the
+  candidate does that themselves. We prepare the answers only.
 - **Don't dump packet/board contents into chat.** `answers.md` is the review surface — show that.
   Board changes go through `scoreboard.py` (one-line output only).
 - **Privacy:** everything under `applications/` is gitignored; run `python3 publish_guard.py`
