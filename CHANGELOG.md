@@ -4,6 +4,10 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 `git log` gives you, kept human-readable. **Rule: every commit to `main` adds its line here in
 the same commit** (the pre-push review covers it).
 
+## 2026-08-03
+- Batch display: **clamp the post-script freehand to ONE short single-clause line** (top pick). The old "≤3 lines of closing judgment" license let sessions write multi-clause 三点判断 blocks that corrupt on the terminal (CJK words drop / lines merge) — the recurring "garbled batch summary" bug. Fixed in SKILL.md Mode C + CLAUDE.md floor rule 4. The per-job judgment already lives in the `--full` output; re-synthesizing it is redundant.
+- Rejection cooldown: dedup (SKILL.md Step 0) and `job-sourcer` now flag/skip roles whose board status is `被拒`/`已挂`/`已拒` — don't re-suggest a recently-rejected role (~6mo freeze; a *different* role at that company is fine). (Contributed by another session; reviewed.)
+
 ## 2026-07-31
 - Add `interview-intel` agent + interview-prep **Mode C** (technical rounds): researches one company×stage's recent (≤6mo) 面经 across 1point3acres/Reddit/Glassdoor/LeetCode Discuss under a strict budget (≤12 searches, ≤10 fetches, ≤3 per source; login walls listed for the candidate, never bypassed), then the skill builds a profile-aware prep plan.
 - Add `.claude/hooks/web_budget_guard.py` + shipped `.claude/settings.json`: PreToolUse hook hard-capping WebSearch/WebFetch at 40 calls per agent session (WEB_BUDGET_MAX to tune) — deterministic runaway protection for ALL research agents. Design page synced (agents 7→8).

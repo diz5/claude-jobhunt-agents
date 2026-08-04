@@ -20,6 +20,11 @@ candidate and hands picks to `job-analyzer`.
 2. **`job-scoreboard.md` + `job-analyses/_pending.md`** — collect the company+role pairs
    already on record. Anything already there is NOT a find; skip it. (A *different* role at a
    boarded company IS a valid find.)
+   - **Rejection cooldown:** if a boarded pair's status contains `被拒` / `已挂` / `已拒`, treat
+     it as under a reapply freeze — do **not** resurface that same role even if the new posting's
+     wording differs slightly (re-req, tweaked title, same JD). Reapply cooldowns are typically
+     ~6 months (varies by company). The candidate does not want to be re-suggested a role he was
+     recently rejected from. A genuinely *different* role at that company is still fine to surface.
 
 ## Step 2 — Sweep real job sources (ATS-first; no login-walled sites)
 Search where anonymous fetches actually work — company ATS pages have real posting dates and

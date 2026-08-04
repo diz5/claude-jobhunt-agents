@@ -14,7 +14,10 @@ and they exist because long-running sessions have repeatedly drifted on exactly 
    No placeholder/PENDING rows, ever.
 4. **Batch analyses follow SKILL.md Mode C exactly**: progress-counter lines only while
    analyzers run; when all are back, one `batch_summary.py --full` call relayed verbatim.
-   Never improvise tables, per-job commentary, or your own summary format.
+   Never improvise tables, per-job commentary, or your own summary format. **After the script
+   output, write AT MOST one short single-clause line (the top pick). NEVER a multi-point
+   判断/总结 paragraph** — long CJK prose corrupts on the terminal (words drop, lines merge),
+   and it just repeats what the script already printed.
 5. **Personal data never enters git.** `publish_guard.py` + `.gitignore` enforce the split;
    anything named `*.local.md`, résumés, the board, and `job-analyses/` stay local. When in
    doubt, don't commit.
