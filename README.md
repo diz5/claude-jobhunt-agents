@@ -65,6 +65,12 @@ and a batch of analyses doesn't block on a full re-sort.
 | `.claude/agents/role-scout.md` | Subagent that scouts a company's careers page / ATS for a better-fitting role when the analyzed one missed. |
 | `.claude/agents/job-sourcer.md` | Subagent that proactively sweeps ATS job boards (Greenhouse/Lever/Ashby/Workday) for new postings matching your profile. |
 | `.claude/agents/application-answerer.md` | Subagent that drafts a job-application answer, grounded in the saved analysis + your profile/kit. |
+| `.claude/skills/linkedin-sourcing/SKILL.md` | Daily LinkedIn pass across your metros: ingest your logged-in search (via the console snippet), dedup, analyze the new ones, present >6 with an apply link. |
+| `.claude/skills/linkedin-sourcing/seen.py` | Deterministic jobId ledger (SQLite, gitignored) so re-runs skip already-seen postings (CLI: `ingest`/`todo`/`mark`/`filter`/`stats`/`list`). |
+| `.claude/skills/linkedin-sourcing/linkedin_extract.js` | Read-only DevTools snippet that reads your logged-in LinkedIn results into JSON — no automated login, no account risk. |
+| `.claude/skills/auto-apply/SKILL.md` | Auto-apply orchestrator (queue → packet → draft → payload → gated autofill/submit). |
+| `.claude/skills/auto-apply/apply.py` | Deterministic apply bookkeeping (CLI: `queue`/`init`/`build-payload`/`list`). |
+| `.claude/agents/application-drafter.md` | Subagent that drafts one job's form answers (short, human, grounded) into its packet. |
 | `.claude/agents/publish-guard.md` | Read-only agent that verifies the repo is safe to publish. |
 | `.claude/skills/interview-prep/SKILL.md` | Recruiter/HR-screen playbook: interactive mock screen + prep-pack generation. |
 | `.claude/agents/interview-prep-writer.md` | Subagent that researches + writes one company's recruiter-screen prep pack. |
@@ -72,6 +78,7 @@ and a batch of analyses doesn't block on a full re-sort.
 | `.claude/hooks/web_budget_guard.py` | PreToolUse hook: hard cap on WebSearch/WebFetch calls per agent session — deterministic runaway protection (wired in `.claude/settings.json`). |
 | `.claude/agents/design-doc-writer.md` | Low-cost agent that keeps `docs/design.html` in sync with the tooling (surgical edits). |
 | `.claude/skills/list-sessions/` | Utility skill: list past Claude Code sessions for the project. |
+| `identity.example.json` | Template for your (gitignored) `applications/identity.json` — the identity autofill uses. |
 | `publish_guard.py` | The deterministic secret scanner the guard agent runs. |
 | `profile.example.md` | Template for your (gitignored) `profile.local.md`. |
 | `application-kit.example.md` | Template for your (gitignored) `application-kit.md` — fixed answers + story bank. |
@@ -92,6 +99,7 @@ claude-jobhunt-agents/
 ├── md2docx.py                      # markdown résumé → .docx (clones a reference docx's look)
 ├── profile.example.md              # copy → profile.local.md (gitignored) and fill in
 ├── application-kit.example.md      # copy → application-kit.md (gitignored) and fill in
+├── identity.example.json           # copy → applications/identity.json (gitignored)
 ├── backup.example.sh               # copy → ~/backup.sh: mirror personal data to cloud storage
 ├── docs/
 │   └── design.html                 # self-contained architecture/design page
@@ -109,6 +117,7 @@ claude-jobhunt-agents/
     │   ├── role-scout.md            # subagent: scout a better-fitting role at one company
     │   ├── job-sourcer.md           # subagent: sweep job boards for new fitting postings
     │   ├── application-answerer.md  # subagent: draft a job-application answer
+    │   ├── application-drafter.md   # subagent: draft one job's form answers
     │   ├── interview-prep-writer.md # subagent: write one company's recruiter-screen pack
     │   ├── interview-intel.md       # subagent: recent-面经 research (budgeted)
     │   ├── publish-guard.md         # agent: verify repo is safe to publish
@@ -119,14 +128,24 @@ claude-jobhunt-agents/
         │   └── scoreboard.py        # deterministic scoreboard bookkeeping
         ├── interview-prep/
         │   └── SKILL.md             # recruiter-screen mock + prep-pack playbook
+        ├── linkedin-sourcing/
+        │   ├── SKILL.md             # daily LinkedIn pass: ingest → dedup → analyze → >6 + apply link
+        │   ├── seen.py              # jobId ledger (SQLite) so re-runs skip already-seen postings
+        │   └── linkedin_extract.js  # read-only console snippet: your logged-in results → JSON
+        ├── auto-apply/
+        │   ├── SKILL.md             # apply orchestrator (queue/draft/payload/submit)
+        │   └── apply.py             # deterministic apply bookkeeping
         └── list-sessions/
             ├── SKILL.md
             └── list_sessions.py
 ```
 
+Per-job application packets live under a gitignored `applications/<slug>/`
+(`packet.json`, `answers.md`, `payload.json`, `run.log`) plus `applications/identity.json`.
+
 Personal data is never committed — it lives in gitignored local files:
 `profile.local.md`, `job-scoreboard.md`, `job-analyses/`, `application-kit.md`,
-`.claude/settings.local.json`, `.secrets.local`.
+`.linkedin-seen.db`, `.claude/settings.local.json`, `.secrets.local`.
 
 ## Quick start
 
@@ -142,7 +161,8 @@ Personal data is never committed — it lives in gitignored local files:
 Personal data lives **outside git**, and a guard proves it before anything ships:
 
 - **Gitignored (local only):** `profile.local.md`, `job-scoreboard.md`, `job-analyses/`,
-  `application-kit.md`, résumés, `.claude/settings.local.json`, `.secrets.local`.
+  `application-kit.md`, `applications/` (per-job packets + `identity.json`), résumés,
+  `.claude/settings.local.json`, `.secrets.local`.
 - **Committed (generic):** the skills, agents, script, templates, and fictional examples.
 - **Guard:** `python3 publish_guard.py` scans every *git-tracked* file for personal data
   (home paths, emails, salary figures, and your own secret tokens from `.secrets.local`) and
