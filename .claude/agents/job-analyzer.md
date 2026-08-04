@@ -52,6 +52,14 @@ Use this EXACT ⭐ template (same one the chat display uses — emoji headers in
 ```
 Rules: 薪资性价比 与「vs 基准」**必须给具体美元区间**（未披露→`未披露*`+估算+来源）；🟢/🔴 用真 emoji；整块 ≤20 行；COL 折进 💰、Glassdoor 折进「2. 前景」，不再单列「薪资vs生活成本」「工作氛围」。
 
+### 推荐分 derivation — FIT-GATED, not an average of the three sub-scores
+The 推荐分 is **anchored to 履历适配度**; salary and company can refine it but NEVER rescue a bad fit. This is a job *search* — a high-paying role on a stack the candidate can't clear the technical bar on is worth ~0, not 7.
+
+- **履历适配度 is computed first, and its dominant component is tech-stack match.** A stack the candidate lacks in production (per `profile.local.md`'s 🔴/gaps — e.g. TS/full-stack, .NET, mobile, Go/Rust, cloud the profile marks as zero-experience/hard-required) **caps 履历适配度 low** — narrative / domain / culture / SRE-process overlap does NOT lift it back over the bar. AI/agentic-harness fit (daily AI-coding tools, applied-LLM in prod, agent tooling — whatever the profile marks a top 🟢) is a **co-top positive that LIFTS 履历适配度 when present**; its *absence* is not a penalty.
+- **If 履历适配度 < 6 → 推荐分 = 履历适配度. Salary and company add NOTHING.** (Worked example: a high-paying, well-reviewed SRE role built on a stack the candidate lacks — full-stack TypeScript + AWS-mandatory — with 履历适配度 5.5 → 推荐分 **5.5**, below the bar, even at comp far above the benchmark and a great Glassdoor score.)
+- **If 履历适配度 ≥ 6 → 推荐分 = 履历适配度 as the anchor, modified by salary + company by at most ~±1 combined.** Fit dominates; salary is secondary, company tertiary.
+- **Company splits into two opposite forces** (don't mash them into one shove): company **risk** (layoffs / dying / foreign-HQ US-team autonomy) is a small *downward* shave; company **prestige/heat** (BigTech, hot well-funded AI — per the profile's stated goal) is a small *upward* lift.
+
 ### 2. Return the report + a scoreboard row
 Your final message is your return value (raw data, not a greeting). Return, in this order:
 1. The **full 中文 report in the ⭐ template** (the exact same content you wrote to the file) — the main agent relays it VERBATIM to the candidate, so it must already be in the ⭐ format.

@@ -47,6 +47,7 @@ This is the "have I already seen/applied to this?" guard. Always run it first.
 - Use WebSearch/WebFetch for anything not in the posting (company financials, funding, Glassdoor, cost-of-living, comp bands). No MCP required.
 - **Never dump `job-scoreboard.md` contents in chat** — no full table, no row diffs, no code blocks of the edits. Confirm in one short line only.
 - **Don't imply it's safe to leave while subagents are running.** If `job-analyzer` work is in flight and the user signals they're about to exit/close the session, warn them one line first (e.g. "还有 N 个分析子代理在跑，退出会中断它们——建议等它们返回再退"). (This is a warning only — Claude Code cannot technically block a user from exiting; the workflow is interruption-safe regardless: files write incrementally, `_pending.md` is append-only, the flush is idempotent, so the next session recovers cleanly.)
+- **推荐分 fit-gated（见 Mode A 模板硬规则）：** 推荐分锚定履历适配度（主导项=技术栈匹配，AI 契合为同级正向项）；履历适配度 < 6 时推荐分=履历适配度，薪资/公司不能救上榜；≥6 时薪资(次)+公司(再次)最多 ~±1 微调。这是为什么高薪但错栈的岗位（如全栈 TS / 强制 AWS）会正确落到 <6。
 - **推荐分 < 6 = 直接跳过，不入榜（硬门槛）。** 低于候选人门槛的岗位不进 `job-scoreboard.md`。`scoreboard.py` 的 `append`/`flush` 会自动丢弃 <6 的行（你无需手动过滤，但也别指望能把 <6 塞进榜单）。Mode A/C 里若分析结果 <6：照常把 ⭐ 报告呈现给用户（让他看到为什么低），但**不要** stage 该行——用一句话说明"X 分 < 6，未入榜"。历史遗留的 <6 行用 `scoreboard.py prune` 清理。
 - **Never touch `job-scoreboard.md` or `job-analyses/_pending.md` with the Edit/Write tools — not even one line.** A main-agent file edit renders a noisy `Update(...)` diff in chat (which the candidate does NOT want to see) and bypasses the min-score gate, dedup, and re-numbering. Do ALL board/buffer changes through the deterministic script **`python3 .claude/skills/analyze-job/scoreboard.py`** (ops: `append` / `flush` / `status` / `refresh` / `remove` / `prune` / `state` / `check`) — it prints only one line of stdout, no diff.
   - **No placeholder/"分析中"/PENDING rows in the buffer, ever.** Each job yields **exactly one complete, scored row**, appended via `scoreboard.py append` **only after** its 推荐分 is known. A row without a numeric 推荐分 is never staged. Show in-progress status in chat text only ("正在分析 Microsoft MAI…"), never by writing a partial row to `_pending.md`. It's exact, atomic, and shows only its one-line stdout — no diff. (This replaced the old `scoreboard-keeper` LLM subagent: mechanical bookkeeping is a job for code, not an LLM — code doesn't hallucinate, doesn't race, and finishes in <1s.) Analysis files (`job-analyses/<Company>.md`) are still written by the `job-analyzer` subagent. So: **LLM does the thinking (job-analyzer); the script does the bookkeeping (scoreboard.py); the main agent orchestrates and talks.**
@@ -75,6 +76,11 @@ Do all the research first (internally), then render the analysis in EXACTLY this
 ```
 
 Hard rules for the template:
+- **推荐分是 FIT-GATED，不是三个子分的平均。** 推荐分锚定在 **履历适配度** 上；薪资和公司只能微调，**绝不能把差 fit 的岗位救上榜**。这是求职——一个薪资很高但栈错位（候选人过不了技术关）的岗位价值≈0，不是 7 分。
+  - 履历适配度先算，**主导项是技术栈匹配**：候选人生产环境没有的栈（见 `profile.local.md` 的 🔴/gaps——如 TS/全栈、.NET、mobile、Go/Rust、profile 标零经验或硬要求的云）**把履历适配度压低**，叙事/领域/文化/SRE 流程的重合**不能**把它拉回门槛之上。AI/agentic 契合（日常 AI 编码工具、生产级 applied-LLM、agent 工具——profile 标的顶级 🟢）是**同级正向项，命中时抬高履历适配度**；缺席不扣分。
+  - **履历适配度 < 6 → 推荐分 = 履历适配度，薪资/公司不加分。**（实例：一个高薪、口碑好、但栈错位的 SRE 岗——全栈 TypeScript + 强制 AWS——履历适配度 5.5 → 推荐分 **5.5**，不入榜，哪怕薪资远超基准、Glassdoor 分很高。）
+  - **履历适配度 ≥ 6 → 推荐分 = 履历适配度为锚，薪资+公司合计最多 ~±1 微调。** Fit 主导，薪资次要，公司再次要。
+  - **公司拆成两个相反的力**：公司**风险**（裁员/衰退/外资母体美国团队自治度）是小幅**下调**；公司**档次/热度**（BigTech、热门且资金充足的 AI——见 profile 的目标）是小幅**上抬**。别把两者混成一个笼统分。
 - **薪资性价比 与「vs 基准」必须给具体美元区间**——绝不能只写"打平/降/购买力↓"而无数字。未披露就写 `未披露*` + 估算区间（标来源）。
 - 🟢/🔴 用真 emoji；每个子分后面都要跟一句理由。
 - 保持紧凑，整块约 ≤20 行；`💰` 里已含 COL/薪资对比，`2. 前景` 里已含 Glassdoor，所以不再单列"薪资 vs 生活成本""工作氛围"两节。
