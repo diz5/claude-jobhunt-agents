@@ -5,6 +5,7 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 the same commit** (the pre-push review covers it).
 
 ## 2026-08-03
+- `scoreboard.py remove` falls back to the `_pending.md` staging buffer when the row isn't on the board yet — lets you remove a row analyzed this session before it's flushed. (Contributed by another session; reviewed.)
 - **Scoring is now fit-gated** (job-analyzer.md + SKILL.md Mode A): 推荐分 is anchored to 履历适配度, not an average of the three sub-scores. Tech-stack match is the gate (a stack the candidate lacks tanks fit; domain/culture overlap can't rescue it); AI/agentic-harness fit is a co-top positive. If fit < 6 → 推荐分 = fit (salary/company can't lift it); if ≥ 6 → fit anchors, salary+company modify ~±1. Company splits into risk (small down) vs prestige/heat (small up). Fixes bad-fit-but-high-pay jobs scoring ~7.
 - Batch display: **clamp the post-script freehand to ONE short single-clause line** (top pick). The old "≤3 lines of closing judgment" license let sessions write multi-clause 三点判断 blocks that corrupt on the terminal (CJK words drop / lines merge) — the recurring "garbled batch summary" bug. Fixed in SKILL.md Mode C + CLAUDE.md floor rule 4. The per-job judgment already lives in the `--full` output; re-synthesizing it is redundant.
 - Rejection cooldown: dedup (SKILL.md Step 0) and `job-sourcer` now flag/skip roles whose board status is `被拒`/`已挂`/`已拒` — don't re-suggest a recently-rejected role (~6mo freeze; a *different* role at that company is fine). (Contributed by another session; reviewed.)

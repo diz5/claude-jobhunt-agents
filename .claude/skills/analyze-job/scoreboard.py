@@ -281,6 +281,16 @@ def op_remove(args):
     board = read(BOARD)
     hits = _find(board, args.company, args.role)
     if not hits:
+        # fall back to the staging buffer — a row analyzed this session may not be merged yet
+        pend = read(PENDING) if os.path.exists(PENDING) else []
+        phits = _find(pend, args.company, args.role)
+        if phits:
+            for i in sorted(phits, reverse=True):
+                del pend[i]
+            write_atomic(PENDING, pend)
+            stamp_state("remove")
+            print(f"removed {len(phits)} row(s) for {args.company} / {args.role} from _pending.md")
+            return
         print(f"NOT FOUND: {args.company} / {args.role}")
         return
     for i in sorted(hits, reverse=True):
