@@ -20,8 +20,8 @@ import sys
 
 REQUIRED_IGNORES = [
     "profile.local.md", ".secrets.local", "job-scoreboard.md", "job-analyses/",
-    "application-kit.md", "applications/", ".linkedin-seen.db", ".claude/settings.local.json",
-    "*.pdf", "*.docx",
+    "application-kit.md", "applications/", ".linkedin-seen.db", "referral-companies.md",
+    ".claude/settings.local.json", "*.pdf", "*.docx",
 ]
 
 GENERIC_PATTERNS = [

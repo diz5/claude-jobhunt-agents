@@ -65,9 +65,10 @@ and a batch of analyses doesn't block on a full re-sort.
 | `.claude/agents/role-scout.md` | Subagent that scouts a company's careers page / ATS for a better-fitting role when the analyzed one missed. |
 | `.claude/agents/job-sourcer.md` | Subagent that proactively sweeps ATS job boards (Greenhouse/Lever/Ashby/Workday) for new postings matching your profile. |
 | `.claude/agents/application-answerer.md` | Subagent that drafts a job-application answer, grounded in the saved analysis + your profile/kit. |
-| `.claude/skills/linkedin-sourcing/SKILL.md` | Daily LinkedIn pass across your metros: ingest your logged-in search (via the console snippet), dedup, analyze the new ones, present >6 with an apply link. |
-| `.claude/skills/linkedin-sourcing/seen.py` | Deterministic jobId ledger (SQLite, gitignored) so re-runs skip already-seen postings (CLI: `ingest`/`todo`/`mark`/`filter`/`stats`/`list`). |
-| `.claude/skills/linkedin-sourcing/linkedin_extract.js` | Read-only DevTools snippet that reads your logged-in LinkedIn results into JSON — no automated login, no account risk. |
+| `.claude/skills/linkedin-sourcing/SKILL.md` | Daily job pass across your metros: source by criteria (senior + past-24h) via anonymous LinkedIn guest search, dedup, analyze the new ones, present >6 with an apply link. Includes a separate referral track for big-tech companies. |
+| `.claude/skills/linkedin-sourcing/seen.py` | Deterministic jobId ledger (SQLite, gitignored) so re-runs skip already-seen postings; tracks post date + a referral flag (CLI: `ingest`/`todo`/`mark`/`filter`/`reflag`/`stats`/`list`). |
+| `.claude/skills/linkedin-sourcing/linkedin_extract.js` | Read-only DevTools snippet (fallback for sites that render a normal DOM; LinkedIn's own list is now iframe-walled — sourcing uses the guest search instead). |
+| `referral-companies.example.md` | Template for your (gitignored) `referral-companies.md` — big-tech companies you can be referred into; drives the referral track. |
 | `.claude/skills/auto-apply/SKILL.md` | Auto-apply orchestrator (queue → packet → draft → payload → gated autofill/submit). |
 | `.claude/skills/auto-apply/apply.py` | Deterministic apply bookkeeping (CLI: `queue`/`init`/`build-payload`/`list`). |
 | `.claude/agents/application-drafter.md` | Subagent that drafts one job's form answers (short, human, grounded) into its packet. |
