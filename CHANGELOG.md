@@ -7,6 +7,7 @@ the same commit** (the pre-push review covers it).
 ## 2026-08-08
 - Merge PR #1 (`feature/auto-apply`): linkedin-sourcing skill (guest-search engine + `seen.py` jobId ledger + separate big-tech referral track), auto-apply skill (`apply.py` + `application-drafter` subagent, manual-submit-only), `identity.example.json`, `referral-companies.example.md`, publish-guard updates.
 - Fix auto-apply SKILL.md Step 0: sourcing is via anonymous LinkedIn guest search (the console snippet is dead for LinkedIn); gitignore `session-helper/archive/`.
+- Add `/job-search` + `/referral-check` slash commands (`.claude/commands/`) — one-word triggers for the linkedin-sourcing regular pass and referral track.
 - **Rename `auto-apply` → `application-prep`** (the old name implied automated submission; "auto-apply" kept as a trigger alias) and **drop the `payload.json` layer** (`build-payload` op, `submit_mode` field) — leftovers of the dropped autofill driver; `answers.md` is the sole deliverable. README/design page synced.
 
 ## 2026-08-03

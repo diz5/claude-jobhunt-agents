@@ -69,6 +69,8 @@ and a batch of analyses doesn't block on a full re-sort.
 | `.claude/skills/linkedin-sourcing/seen.py` | Deterministic jobId ledger (SQLite, gitignored) so re-runs skip already-seen postings; tracks post date + a referral flag (CLI: `ingest`/`todo`/`mark`/`filter`/`reflag`/`stats`/`list`). |
 | `.claude/skills/linkedin-sourcing/linkedin_extract.js` | Read-only DevTools snippet (fallback for sites that render a normal DOM; LinkedIn's own list is now iframe-walled — sourcing uses the guest search instead). |
 | `referral-companies.example.md` | Template for your (gitignored) `referral-companies.md` — big-tech companies you can be referred into; drives the referral track. |
+| `.claude/commands/job-search.md` | `/job-search` — one-word trigger for the daily regular-metro sourcing pass. |
+| `.claude/commands/referral-check.md` | `/referral-check` — one-word trigger for the referral-track pass. |
 | `.claude/skills/application-prep/SKILL.md` | Application-prep orchestrator (queue → packet → draft → review; the candidate fills + submits the form manually). |
 | `.claude/skills/application-prep/apply.py` | Deterministic apply bookkeeping (CLI: `queue`/`init`/`list`). |
 | `.claude/agents/application-drafter.md` | Subagent that drafts one job's form answers (short, human, grounded) into its packet. |
@@ -113,6 +115,9 @@ claude-jobhunt-agents/
     ├── settings.json               # shipped project hooks (web-budget guard)
     ├── hooks/
     │   └── web_budget_guard.py      # hard cap on web calls per agent session
+    ├── commands/
+    │   ├── job-search.md            # /job-search → daily regular-metro sourcing pass
+    │   └── referral-check.md        # /referral-check → referral-track pass
     ├── agents/
     │   ├── job-analyzer.md          # subagent: research + score one posting
     │   ├── role-scout.md            # subagent: scout a better-fitting role at one company
