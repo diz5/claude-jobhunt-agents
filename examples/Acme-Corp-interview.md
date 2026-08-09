@@ -44,10 +44,10 @@
 > services, so I know where I'd have the most impact early." （把顾虑转成聪明的澄清问题）
 
 ## 💰 薪资谈话脚本 (comp talk-track)
-- **给区间，不给单点**：target **base $190K–210K，total comp $260K–300K**，锚定候选人 benchmark
+- **给区间，不给单点**：target **base $X–Y，total comp $A–B**，锚定候选人 benchmark
   （`profile.local.md`）并按 Remote/岗位城市 COL + 州税折算（复用 `job-analyses/Acme-Corp.md` 的估算）。
 - **English line**: "Based on my experience and the market for senior backend roles, I'm targeting
-  total comp in the **$260K–300K** range, but I'd like to understand the level and scope before we
+  total comp in the **$A–B** range, but I'd like to understand the level and scope before we
   anchor on a number." （先给区间 + deferral，不先报低锚。）
 - Gating 问题一句话：in-range? → "Yes, that works." · sponsorship? → "No, I'm authorized, no
   sponsorship needed." · W2? → "Yes."

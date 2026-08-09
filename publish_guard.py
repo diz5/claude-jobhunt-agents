@@ -20,7 +20,8 @@ import sys
 
 REQUIRED_IGNORES = [
     "profile.local.md", ".secrets.local", "job-scoreboard.md", "job-analyses/",
-    "application-kit.md", ".claude/settings.local.json", "*.pdf", "*.docx",
+    "application-kit.md", "applications/", ".linkedin-seen.db", "referral-companies.md",
+    ".claude/settings.local.json", "*.pdf", "*.docx",
 ]
 
 GENERIC_PATTERNS = [
@@ -57,7 +58,14 @@ def missing_ignores(root):
     probes = {"*.pdf": "sample.pdf", "*.docx": "sample.docx"}
     missing = []
     for e in REQUIRED_IGNORES:
-        probe = probes.get(e, e.rstrip("/"))
+        if e in probes:
+            probe = probes[e]
+        elif e.endswith("/"):
+            # A dir-only pattern (`foo/`) only matches via git check-ignore when the dir
+            # exists on disk; probe a child path so it verifies even in a clean checkout.
+            probe = e + "__probe__"
+        else:
+            probe = e
         rc = subprocess.run(["git", "-C", root, "check-ignore", "-q", probe]).returncode
         if rc != 0:  # 0 = ignored, 1 = NOT ignored
             missing.append(e)

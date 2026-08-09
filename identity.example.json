@@ -1,0 +1,14 @@
+{
+  "_note": "TEMPLATE — copy to applications/identity.json (gitignored) and fill in your real details. apply.py reads applications/identity.json to seed each packet's identity block. All values below are fictional.",
+  "first_name": "Sam",
+  "last_name": "Rivera",
+  "full_name": "Sam Rivera",
+  "email": "sam.rivera@example.com",
+  "phone": "555-0100",
+  "location": "Austin, TX",
+  "linkedin": "https://www.linkedin.com/in/sam-rivera",
+  "github": "https://github.com/sam-rivera",
+  "website": "",
+  "work_authorized": true,
+  "requires_sponsorship": false
+}

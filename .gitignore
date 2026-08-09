@@ -13,6 +13,11 @@ application-kit.md
 .status-history.json
 .merge-log.md
 /interview-prep/
+applications/
+.linkedin-seen.db*
+.linkedin-referral.db*
+referral-companies.md
+referral-queue.md
 
 # Resumes & docs (any format — resume drafts in markdown included)
 *.pdf
