@@ -14,9 +14,10 @@ Both are gitignored (the repo ships `profile.example.md` / `identity.example.jso
 
 ## Step 0 — Sourcing (see the `linkedin-sourcing` skill)
 Finding the roles to apply to is its own workflow, owned by the **`linkedin-sourcing`** skill:
-the candidate runs `linkedin_extract.js` on their logged-in searches, the `seen.py` jobId ledger
-dedups across daily runs, survivors are analyzed (⭐, location-aware) and the >6 list is presented
-with an apply link. (ATS-board sweeps are the `job-sourcer` agent; both feed the analysis flow.)
+it sources by criteria via anonymous LinkedIn **guest search** (server-side, no account risk), the
+`seen.py` jobId ledger dedups across daily runs, survivors are analyzed (⭐, location-aware) and the
+>6 list is presented with an apply link. (ATS-board sweeps are the `job-sourcer` agent; both feed
+the analysis flow.)
 
 Roles the candidate then wants to apply to move into the packet flow below.
 

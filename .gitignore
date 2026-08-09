@@ -29,6 +29,7 @@ old-resume/
 # Local settings & session logs (contain paths + researched companies)
 .claude/settings.local.json
 session-helper/session-info.md
+session-helper/archive/
 
 # pipeline-chart skill (has baked-in personal numbers; add back sanitized later)
 .claude/skills/pipeline-chart/
