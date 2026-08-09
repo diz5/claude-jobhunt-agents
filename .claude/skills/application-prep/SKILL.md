@@ -1,13 +1,13 @@
 ---
-name: auto-apply
-description: Prep and (optionally) submit job applications from the ranked scoreboard. Use when the user says "apply to X", "queue up applications", "auto-apply", "draft the answers for X", "fill the form for X", or wants to see which roles to apply to next. Picks roles off job-scoreboard.md, scaffolds a per-job packet, drafts human answers, and builds a review-ready answer sheet you use to fill and submit the ATS form yourself. No automated form-filling or submission — you apply manually.
+name: application-prep
+description: Prep job applications from the ranked scoreboard. Use when the user says "apply to X", "queue up applications", "auto-apply" (legacy name), "draft the answers for X", "fill the form for X", or wants to see which roles to apply to next. Picks roles off job-scoreboard.md, scaffolds a per-job packet, and drafts a review-ready answer sheet you use to fill and submit the ATS form yourself. No automated form-filling or submission — you apply manually.
 ---
 
-# Auto-Apply
+# Application Prep (formerly auto-apply)
 
 Turn ranked roles into filed applications, keeping the same split as the rest of this repo:
 **LLM does judgment** (drafting answers), **code does mechanics** (`apply.py`: queue,
-packet scaffold, payload). Personal data lives only under `applications/` (gitignored).
+packet scaffold). Personal data lives only under `applications/` (gitignored).
 
 **Load `profile.local.md`** for the candidate; **`application-kit.md`** for reusable answers.
 Both are gitignored (the repo ships `profile.example.md` / `identity.example.json` as templates).
@@ -24,9 +24,8 @@ Roles the candidate then wants to apply to move into the packet flow below.
 ## Data model — one folder per job (all gitignored)
 ```
 applications/<slug>/
-├── packet.json    # machine-fillable: identity + questions[{label,answer,...}] + ats/url + submit_mode + state
-├── answers.md     # human-readable answer sheet — the review surface
-├── payload.json   # flat field→value fill spec (produced by build-payload; consumed by the autofill driver)
+├── packet.json    # machine record: identity + questions[{label,answer,...}] + ats/url + state
+├── answers.md     # human-readable answer sheet — the review surface (the deliverable)
 └── run.log        # append-only pipeline log
 applications/identity.json   # shared applicant identity (copy from identity.example.json), gitignored
 ```
@@ -34,18 +33,17 @@ applications/identity.json   # shared applicant identity (copy from identity.exa
 scoreboard), so one company's multiple roles get separate packets.
 
 ## Apply-state (mirrors the scoreboard 状态 column, extended)
-`未投 → 排队中 → 草稿就绪 → 已填(待提交) → 已投 MM-DD`
+`未投 → 排队中 → 草稿就绪 → 已投 MM-DD`
 - The board is **single-writer through `scoreboard.py`** — never hand-edit it. When a job
   moves state, update the board with
   `python3 .claude/skills/analyze-job/scoreboard.py status --company C --role R --set "<state>"`.
-- The packet's own `state` field is updated by `apply.py`/the driver as it progresses.
+- The packet's own `state` field is updated by `apply.py` as it progresses.
 
 ## The mechanical CLI — `apply.py`
-`python3 .claude/skills/auto-apply/apply.py <op>`:
+`python3 .claude/skills/application-prep/apply.py <op>`:
 - `queue [--min-score N] [--status S] [--json]` — roles to apply to, ranked (default: 状态=未投, 推荐分≥6).
-- `init --company C --role R [--url U] [--ats A] [--location L] [--submit-mode M]` — scaffold the packet (seeds identity from `applications/identity.json`).
-- `build-payload --slug S` — packet.json → payload.json (flat fill spec); warns about any unanswered question.
-- `list [--json]` — all packets and their state.
+- `init --company C --role R [--url U] [--ats A] [--location L]` — scaffold the packet (seeds identity from `applications/identity.json`).
+- `list [--json]` — all packets, their state and answered-question count.
 Show only its one-line stdout — do not paste packet/board contents into chat.
 
 ## Flow
@@ -56,8 +54,7 @@ which to prep (or "top N"). Only roles already **analyzed** (on the board) can b
 the user names an un-analyzed company, run the `analyze-job` skill first.
 
 ### Step 2 — Scaffold the packet
-For each chosen role: `apply.py init --company … --role … --url … --ats … --submit-mode manual`.
-Default **`--submit-mode manual`** unless the user has chosen otherwise (see Submit modes).
+For each chosen role: `apply.py init --company … --role … --url … --ats …`.
 Then set the board state: `scoreboard.py status … --set 排队中`.
 
 ### Step 3 — Draft the answers (subagent)
@@ -67,21 +64,21 @@ packet **slug**, the job's **analysis file** (`job-analyses/<Company>.md`), and 
 the Mode B rules, and writes `answers.md` + fills `packet.json`. Relay its summary — including
 any `needs_confirm` questions the candidate must answer. Then set board state → `草稿就绪`.
 
-### Step 4 — Review + payload
+### Step 4 — Review
 Show the user `answers.md` (this is the review surface — the answers, not the board). Once the
-candidate approves / edits, run `apply.py build-payload --slug …`. If it warns about unanswered
-questions, resolve them before proceeding. Set packet ready; board state stays `草稿就绪`.
+candidate approves / edits, check `apply.py list` shows every question answered; resolve any
+`needs_confirm` items before proceeding. Board state stays `草稿就绪`.
 
 ### Step 5 — Apply manually (no automated autofill/submit — by design)
 The tool intentionally does **not** fill or submit forms for the candidate — we run no browser
 automation on their behalf. The pipeline ends with a review-ready answer sheet:
-- Deliver `answers.md` (the answers) + `payload.json` (field→value fill spec) + the ATS URL.
+- Deliver `answers.md` (the answers) + the ATS URL.
 - The candidate fills the ATS form themselves (copying from the sheet) and clicks Submit.
 - After they apply, record it: `scoreboard.py status … --set "已投 <MM-DD>"` and — if the role came
   through the LinkedIn ledger — `seen.py mark --job-id … --status applied`.
 
-(`apply.py`'s `submit_mode` field is a dormant record only; every application is submitted by the
-candidate. An autofill/submit driver was considered and dropped to avoid browser automation.)
+(An autofill/submit driver — and its `payload.json` fill spec — was considered and dropped to
+avoid browser automation; every application is submitted by the candidate.)
 
 ## Rules
 - **Never fabricate identity or experience.** Answers come from `profile.local.md` +

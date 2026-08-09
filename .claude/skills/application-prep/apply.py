@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Deterministic bookkeeping for the auto-apply pipeline.
+"""Deterministic bookkeeping for the application-prep pipeline.
 
 Sibling to `scoreboard.py`: the LLM (application-drafter) does the *thinking*
 (reading the JD, drafting human answers); this script does the *mechanics* —
-picking which roles to apply to, scaffolding a per-job application packet, and
-serializing that packet into a flat field->value payload the autofill driver
-consumes. Exact, atomic, no hallucination.
+picking which roles to apply to and scaffolding a per-job application packet.
+Exact, atomic, no hallucination.
 
 Files (resolved relative to this script's location, project ROOT):
   <root>/job-scoreboard.md                 the ranked master table (read-only here)
@@ -20,13 +19,12 @@ Ops:
   queue    [--min-score N] [--status S] [--json]   list board roles to apply to, ranked
   init     --company C --role R [--url U] [--ats A] [--location L]
                                                    scaffold applications/<slug>/ packet
-  build-payload --dir D | --slug S                 packet.json -> payload.json (flat fill spec)
   list     [--json]                                list all packets and their state
 
 Apply-state (mirrors the scoreboard 状态 column, extended):
-  未投 -> 排队中 -> 草稿就绪 -> 已填(待提交) -> 已投 MM-DD
-Board status changes are NOT made here — the auto-apply skill routes those through
-scoreboard.py so the board stays single-writer.
+  未投 -> 排队中 -> 草稿就绪 -> 已投 MM-DD
+Board status changes are NOT made here — the application-prep skill routes those
+through scoreboard.py so the board stays single-writer.
 """
 import argparse
 import json
@@ -41,19 +39,6 @@ APPS = os.path.join(ROOT, "applications")
 IDENTITY = os.path.join(APPS, "identity.json")
 
 SCORE_RE = re.compile(r"\*\*([0-9]+(?:\.[0-9]+)?)\*\*")
-
-# Identity field -> aliases the autofill driver fuzzy-matches against form labels.
-IDENTITY_FIELDS = {
-    "first_name":  ["First Name", "Given Name", "Legal First Name", "fname"],
-    "last_name":   ["Last Name", "Family Name", "Surname", "Legal Last Name", "lname"],
-    "full_name":   ["Full Name", "Name", "Your Name"],
-    "email":       ["Email", "Email Address", "E-mail"],
-    "phone":       ["Phone", "Phone Number", "Mobile", "Telephone"],
-    "location":    ["Location", "City", "Current Location", "City, State"],
-    "linkedin":    ["LinkedIn", "LinkedIn Profile", "LinkedIn URL"],
-    "github":      ["GitHub", "GitHub Profile", "GitHub URL"],
-    "website":     ["Website", "Portfolio", "Personal Website"],
-}
 
 # Default identity skeleton written into a packet when applications/identity.json is absent.
 IDENTITY_SKELETON = {
@@ -188,10 +173,9 @@ def op_init(args):
         "ats": args.ats or "",
         "url": args.url or "",
         "resume": args.resume or "",
-        "submit_mode": args.submit_mode,       # manual | confirm | auto
         "state": "排队中",
         "identity": identity,
-        "questions": [],                        # [{id,label,type,answer,required}] filled by driver+drafter
+        "questions": [],                        # [{id,label,type,answer,required}] filled by the drafter
     }
     dump_json(packet_path, packet)
     # human-readable answer sheet stub
@@ -201,58 +185,7 @@ def op_init(args):
                  f"- 岗位链接：{args.url or '（待填）'}\n- ATS：{args.ats or '（待识别）'}\n\n"
                  f"## 表单问题与回答\n\n_（application-drafter 填充）_\n")
     log(slug, f"init packet · ats={args.ats or '?'} · url={args.url or '?'}")
-    print(f"created {os.path.relpath(d, ROOT)}/  (slug: {slug}, submit_mode: {args.submit_mode})")
-
-def op_build_payload(args):
-    slug = args.slug or (os.path.basename(os.path.normpath(args.dir)) if args.dir else None)
-    if not slug:
-        print("build-payload needs --slug or --dir", file=sys.stderr)
-        sys.exit(2)
-    d = packet_dir(slug)
-    packet = load_json(os.path.join(d, "packet.json"))
-    if packet is None:
-        print(f"no packet.json in {os.path.relpath(d, ROOT)}", file=sys.stderr)
-        sys.exit(1)
-    ident = packet.get("identity", {})
-    fields = []
-    for k, aliases in IDENTITY_FIELDS.items():
-        v = ident.get(k, "")
-        if v:
-            fields.append({"key": k, "label": aliases[0], "aliases": aliases,
-                           "value": v, "type": "text"})
-    # work-authorization booleans -> the common yes/no ATS questions
-    fields.append({"key": "work_authorized", "label": "Are you legally authorized to work",
-                   "aliases": ["authorized to work", "work authorization", "legally authorized"],
-                   "value": "Yes" if ident.get("work_authorized", True) else "No", "type": "boolean"})
-    fields.append({"key": "requires_sponsorship", "label": "Will you now or in the future require sponsorship",
-                   "aliases": ["require sponsorship", "visa sponsorship", "immigration sponsorship"],
-                   "value": "Yes" if ident.get("requires_sponsorship", False) else "No", "type": "boolean"})
-    # drafted per-question answers
-    unanswered = []
-    for q in packet.get("questions", []):
-        ans = (q.get("answer") or "").strip()
-        if not ans:
-            unanswered.append(q.get("label", q.get("id", "?")))
-            continue
-        fields.append({"key": q.get("id", ""), "label": q.get("label", ""),
-                       "aliases": [q.get("label", "")], "value": ans,
-                       "type": q.get("type", "textarea")})
-    payload = {
-        "slug": slug,
-        "company": packet.get("company", ""),
-        "role": packet.get("role", ""),
-        "ats": packet.get("ats", ""),
-        "url": packet.get("url", ""),
-        "resume": packet.get("resume", ""),
-        "submit_mode": packet.get("submit_mode", "manual"),
-        "fields": fields,
-    }
-    dump_json(os.path.join(d, "payload.json"), payload)
-    log(slug, f"build-payload · {len(fields)} field(s)"
-              + (f" · {len(unanswered)} question(s) still unanswered" if unanswered else ""))
-    print(f"wrote {os.path.relpath(os.path.join(d, 'payload.json'), ROOT)} · {len(fields)} field(s)")
-    if unanswered:
-        print(f"  ⚠️  {len(unanswered)} unanswered question(s): {unanswered}")
+    print(f"created {os.path.relpath(d, ROOT)}/  (slug: {slug})")
 
 def op_list(args):
     if not os.path.isdir(APPS):
@@ -267,8 +200,7 @@ def op_list(args):
         n_q = len(pk.get("questions", []))
         n_ans = sum(1 for q in pk.get("questions", []) if (q.get("answer") or "").strip())
         items.append({"slug": name, "company": pk.get("company", ""), "role": pk.get("role", ""),
-                      "state": pk.get("state", ""), "answered": f"{n_ans}/{n_q}",
-                      "submit_mode": pk.get("submit_mode", "")})
+                      "state": pk.get("state", ""), "answered": f"{n_ans}/{n_q}"})
     if args.json:
         print(json.dumps(items, ensure_ascii=False, indent=2))
         return
@@ -277,7 +209,7 @@ def op_list(args):
         return
     for it in items:
         print(f"  {it['state']:14} {it['company']} — {it['role']}  "
-              f"(answers {it['answered']}, submit={it['submit_mode']}, slug={it['slug']})")
+              f"(answers {it['answered']}, slug={it['slug']})")
 
 
 def log(slug, msg):
@@ -290,7 +222,7 @@ def log(slug, msg):
 
 
 def main():
-    p = argparse.ArgumentParser(description="Deterministic auto-apply bookkeeping.")
+    p = argparse.ArgumentParser(description="Deterministic application-prep bookkeeping.")
     sub = p.add_subparsers(dest="op", required=True)
 
     q = sub.add_parser("queue")
@@ -307,14 +239,8 @@ def main():
     i.add_argument("--location", default="")
     i.add_argument("--resume", default="")
     i.add_argument("--slug", default="")
-    i.add_argument("--submit-mode", default="manual", choices=["manual", "confirm", "auto"])
     i.add_argument("--force", action="store_true")
     i.set_defaults(fn=op_init)
-
-    b = sub.add_parser("build-payload")
-    b.add_argument("--dir")
-    b.add_argument("--slug")
-    b.set_defaults(fn=op_build_payload)
 
     ls = sub.add_parser("list")
     ls.add_argument("--json", action="store_true")

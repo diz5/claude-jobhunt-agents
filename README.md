@@ -69,8 +69,8 @@ and a batch of analyses doesn't block on a full re-sort.
 | `.claude/skills/linkedin-sourcing/seen.py` | Deterministic jobId ledger (SQLite, gitignored) so re-runs skip already-seen postings; tracks post date + a referral flag (CLI: `ingest`/`todo`/`mark`/`filter`/`reflag`/`stats`/`list`). |
 | `.claude/skills/linkedin-sourcing/linkedin_extract.js` | Read-only DevTools snippet (fallback for sites that render a normal DOM; LinkedIn's own list is now iframe-walled — sourcing uses the guest search instead). |
 | `referral-companies.example.md` | Template for your (gitignored) `referral-companies.md` — big-tech companies you can be referred into; drives the referral track. |
-| `.claude/skills/auto-apply/SKILL.md` | Auto-apply orchestrator (queue → packet → draft → payload → gated autofill/submit). |
-| `.claude/skills/auto-apply/apply.py` | Deterministic apply bookkeeping (CLI: `queue`/`init`/`build-payload`/`list`). |
+| `.claude/skills/application-prep/SKILL.md` | Application-prep orchestrator (queue → packet → draft → review; the candidate fills + submits the form manually). |
+| `.claude/skills/application-prep/apply.py` | Deterministic apply bookkeeping (CLI: `queue`/`init`/`list`). |
 | `.claude/agents/application-drafter.md` | Subagent that drafts one job's form answers (short, human, grounded) into its packet. |
 | `.claude/agents/publish-guard.md` | Read-only agent that verifies the repo is safe to publish. |
 | `.claude/skills/interview-prep/SKILL.md` | Recruiter/HR-screen playbook: interactive mock screen + prep-pack generation. |
@@ -132,9 +132,9 @@ claude-jobhunt-agents/
         ├── linkedin-sourcing/
         │   ├── SKILL.md             # daily LinkedIn pass: ingest → dedup → analyze → >6 + apply link
         │   ├── seen.py              # jobId ledger (SQLite) so re-runs skip already-seen postings
-        │   └── linkedin_extract.js  # read-only console snippet: your logged-in results → JSON
-        ├── auto-apply/
-        │   ├── SKILL.md             # apply orchestrator (queue/draft/payload/submit)
+        │   └── linkedin_extract.js  # read-only console snippet (dead for LinkedIn; kept for other sites)
+        ├── application-prep/
+        │   ├── SKILL.md             # apply orchestrator (queue/draft/review; manual submit)
         │   └── apply.py             # deterministic apply bookkeeping
         └── list-sessions/
             ├── SKILL.md
@@ -142,7 +142,7 @@ claude-jobhunt-agents/
 ```
 
 Per-job application packets live under a gitignored `applications/<slug>/`
-(`packet.json`, `answers.md`, `payload.json`, `run.log`) plus `applications/identity.json`.
+(`packet.json`, `answers.md`, `run.log`) plus `applications/identity.json`.
 
 Personal data is never committed — it lives in gitignored local files:
 `profile.local.md`, `job-scoreboard.md`, `job-analyses/`, `application-kit.md`,

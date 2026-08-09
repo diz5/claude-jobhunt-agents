@@ -80,7 +80,7 @@ The candidate applies manually.
 
 ### 6 — Close the loop
 Candidate applies to all by default and **names the skips**. `mark --status applied` / `skipped`.
-Move applied roles into `auto-apply` if they want answers drafted; set board status via `scoreboard.py`.
+Move applied roles into `application-prep` if they want answers drafted; set board status via `scoreboard.py`.
 
 ## The referral track (big-tech the candidate can be referred into)
 A **separate, bounded** pass for companies on **`referral-companies.md`** (gitignored;

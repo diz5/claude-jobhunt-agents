@@ -211,7 +211,7 @@
     <h1><span class="mono">claude-jobhunt-agents</span></h1>
     <p class="lede">A multi-agent job-hunt workspace: skills route the work, subagents do the judgment, deterministic scripts own the bookkeeping — and a hard boundary keeps every piece of your real data out of the public repo.</p>
     <div class="chips">
-      <span class="chip"><span class="dot"></span>8 agents · 3 skills · 6 scripts</span>
+      <span class="chip"><span class="dot"></span>9 agents · 4 skills · 6 scripts</span>
       <span class="chip">public tooling · private data</span>
       <span class="chip">LLM for judgment · code for mechanics</span>
     </div>
@@ -248,6 +248,7 @@
         <div class="tier-label">Skills — the playbooks</div>
         <div class="row">
           <div class="node skill"><div class="n-name">analyze-job</div><div class="n-desc">dedup · analyze · batch · answer · status · refresh · source · report</div></div>
+          <div class="node skill"><div class="n-name">application-prep</div><div class="n-desc">draft · answer · guide</div></div>
           <div class="node skill"><div class="n-name">interview-prep</div><div class="n-desc">mock screen · prep pack</div></div>
           <div class="node skill"><div class="n-name">list-sessions</div><div class="n-desc">utility</div></div>
         </div>
@@ -258,6 +259,7 @@
           <div class="node judge"><div class="n-name">job-sourcer</div><div class="n-desc">finds new postings via ATS search</div></div>
           <div class="node judge"><div class="n-name">job-analyzer</div><div class="n-desc">research + score one posting</div></div>
           <div class="node judge"><div class="n-name">application-answerer</div><div class="n-desc">draft one application answer</div></div>
+          <div class="node judge"><div class="n-name">application-drafter</div><div class="n-desc">guide application-prep — structure answers per ATS form</div></div>
           <div class="node judge"><div class="n-name">interview-prep-writer</div><div class="n-desc">recruiter-screen prep pack</div></div>
           <div class="node judge"><div class="n-name">interview-intel</div><div class="n-desc">researches recent interview experiences</div></div>
         </div>
@@ -352,19 +354,21 @@
     <p class="sub">All public. Personal specifics never live here — every one reads them from the private files at runtime.</p>
     <div class="cast">
       <div>
-        <p class="col-head"><span class="kind k-skill">skill</span> Playbooks ×3</p>
+        <p class="col-head"><span class="kind k-skill">skill</span> Playbooks ×4</p>
         <ul class="comp">
           <li><div class="c-name">analyze-job</div><div class="c-desc">Orchestrator: dedup, analyze, batch, application answer, status, refresh, source, status report.</div></li>
+          <li><div class="c-name">application-prep</div><div class="c-desc">Draft application answers for posting-specific questions; guides the candidate to fill ATS forms manually.</div></li>
           <li><div class="c-name">interview-prep</div><div class="c-desc">Recruiter/HR screen: interactive mock + prep-pack generation.</div></li>
           <li><div class="c-name">list-sessions</div><div class="c-desc">Lists past Claude sessions for the project.</div></li>
         </ul>
       </div>
       <div>
-        <p class="col-head"><span class="kind k-agent">agent</span> Agents ×8</p>
+        <p class="col-head"><span class="kind k-agent">agent</span> Agents ×9</p>
         <ul class="comp">
           <li><div class="c-name">job-sourcer</div><div class="c-desc">Proactively scans ATS job boards for new postings matching the candidate's profile; returns ranked shortlist.</div></li>
           <li><div class="c-name">job-analyzer</div><div class="c-desc">Researches + scores one posting → ⭐ report + row.</div></li>
           <li><div class="c-name">application-answerer</div><div class="c-desc">Drafts a short, human application answer from the analysis + kit.</div></li>
+          <li><div class="c-name">application-drafter</div><div class="c-desc">Guides application-prep — structures answers per ATS form for manual submission.</div></li>
           <li><div class="c-name">interview-prep-writer</div><div class="c-desc">Writes one company's recruiter-screen pack.</div></li>
           <li><div class="c-name">interview-intel</div><div class="c-desc">Researches recent interview experiences for one company × stage.</div></li>
           <li><div class="c-name">publish-guard</div><div class="c-desc">Read-only leak check before publishing.</div></li>

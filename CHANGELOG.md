@@ -4,6 +4,11 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 `git log` gives you, kept human-readable. **Rule: every commit to `main` adds its line here in
 the same commit** (the pre-push review covers it).
 
+## 2026-08-08
+- Merge PR #1 (`feature/auto-apply`): linkedin-sourcing skill (guest-search engine + `seen.py` jobId ledger + separate big-tech referral track), auto-apply skill (`apply.py` + `application-drafter` subagent, manual-submit-only), `identity.example.json`, `referral-companies.example.md`, publish-guard updates.
+- Fix auto-apply SKILL.md Step 0: sourcing is via anonymous LinkedIn guest search (the console snippet is dead for LinkedIn); gitignore `session-helper/archive/`.
+- **Rename `auto-apply` → `application-prep`** (the old name implied automated submission; "auto-apply" kept as a trigger alias) and **drop the `payload.json` layer** (`build-payload` op, `submit_mode` field) — leftovers of the dropped autofill driver; `answers.md` is the sole deliverable. README/design page synced.
+
 ## 2026-08-03
 - `scoreboard.py remove` falls back to the `_pending.md` staging buffer when the row isn't on the board yet — lets you remove a row analyzed this session before it's flushed. (Contributed by another session; reviewed.)
 - **Scoring is now fit-gated** (job-analyzer.md + SKILL.md Mode A): 推荐分 is anchored to 履历适配度, not an average of the three sub-scores. Tech-stack match is the gate (a stack the candidate lacks tanks fit; domain/culture overlap can't rescue it); AI/agentic-harness fit is a co-top positive. If fit < 6 → 推荐分 = fit (salary/company can't lift it); if ≥ 6 → fit anchors, salary+company modify ~±1. Company splits into risk (small down) vs prestige/heat (small up). Fixes bad-fit-but-high-pay jobs scoring ~7.
