@@ -15,6 +15,7 @@ application-kit.md
 /interview-prep/
 applications/
 .linkedin-seen.db*
+.linkedin-referral.db*
 referral-companies.md
 referral-queue.md
 

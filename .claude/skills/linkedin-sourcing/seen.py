@@ -159,7 +159,7 @@ def op_ingest(args):
     con = connect(args.db)
     day = today(args)
     names = referral_names(args.referral_companies or DEFAULT_REFERRAL)
-    new = seen = bad = 0
+    new = seen = bad = excl = 0
     for r in data:
         if not isinstance(r, dict):
             bad += 1
@@ -174,6 +174,9 @@ def op_ingest(args):
         view = (r.get("viewUrl") or f"https://www.linkedin.com/jobs/view/{jid}").strip()
         posted = (r.get("posted") or "").strip()      # absolute date the caller derived from the card age
         ref = 1 if is_referral(company, names) else 0
+        if args.exclude_referral and ref:
+            excl += 1                                 # regular flow: leave referral companies to the referral track
+            continue
         cur = con.execute("SELECT metros FROM jobs WHERE job_id=?", (jid,)).fetchone()
         if cur is None:
             con.execute(
@@ -194,9 +197,12 @@ def op_ingest(args):
             seen += 1
     con.commit()
     msg = f"metro={args.metro or '-'}: {new + seen} card(s) — {new} new, {seen} already seen"
-    ref_n = sum(1 for r in data if isinstance(r, dict) and is_referral((r.get('company') or ''), names))
-    if ref_n:
-        msg += f" · {ref_n} on referral list"
+    if excl:
+        msg += f" · {excl} referral-company card(s) excluded (referral track)"
+    else:
+        ref_n = sum(1 for r in data if isinstance(r, dict) and is_referral((r.get('company') or ''), names))
+        if ref_n:
+            msg += f" · {ref_n} on referral list"
     if bad:
         msg += f", {bad} skipped (no jobId)"
     print(msg)
@@ -349,6 +355,8 @@ def main():
     ing.add_argument("-i", "--input", default="-", help="JSON file, or - for stdin (default)")
     ing.add_argument("--date", help="override 'today' (YYYY-MM-DD)")
     ing.add_argument("--referral-companies", help=f"referral list file (default {DEFAULT_REFERRAL})")
+    ing.add_argument("--exclude-referral", action="store_true",
+                     help="skip referral-list companies (use in the REGULAR flow; the referral track has its own ledger)")
     ing.set_defaults(fn=op_ingest)
 
     td = sub.add_parser("todo", help="postings still needing triage/analysis")

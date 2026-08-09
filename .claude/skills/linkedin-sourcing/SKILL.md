@@ -86,6 +86,11 @@ Move applied roles into `auto-apply` if they want answers drafted; set board sta
 A **separate, bounded** pass for companies on **`referral-companies.md`** (gitignored;
 `Name | linkedin_company_id | note`). Goal: catch **new fitting roles** at these companies so the
 candidate can decide whether to ask a friend for a referral.
+
+> **Fully separate from the regular flow (by design).** The referral track uses its **own ledger**
+> `--db .linkedin-referral.db`; it never touches the regular `.linkedin-seen.db`. The regular
+> metro pass ingests with **`--exclude-referral`** so referral companies never appear in the regular
+> list — the two flows are disjoint and can't affect each other.
 1. For each referral company, run **one** guest search with the company filter `&f_C=<company_id>`
    (precise; keyword fallback if the id is blank) + senior keywords + his metros — widen `f_TPR` to
    `r604800` (past week), since a referral is worth catching a few days late. **One guest call per
