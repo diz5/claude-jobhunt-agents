@@ -1,12 +1,14 @@
-# claude-jobhunt-agents
+# agentic-workflow-toolkit
 
-A **multi-agent workspace for [Claude Code](https://claude.com/claude-code)** that turns a
-job posting into a structured, evidence-based analysis and keeps a ranked scoreboard of
-every role — with a clean split between what an LLM should do (judgment) and what code
-should do (bookkeeping).
+An **agentic workflow toolkit for [Claude Code](https://claude.com/claude-code)** — a working,
+battle-tested example of multi-agent orchestration with a clean split between what an LLM
+should do (judgment) and what deterministic code should do (bookkeeping).
 
-It's built as a set of **skills + subagents + a deterministic script**, and it keeps all
-personal data out of the repo by design (see [Privacy](#privacy)).
+The reference domain it's built and exercised on: turning a job posting into a structured,
+evidence-based analysis with a ranked scoreboard. The patterns — skills + subagents +
+deterministic CLIs, budget-guard hooks, single-writer state files, a publish guard that keeps
+all personal data out of the repo by design (see [Privacy](#privacy)) — transfer to any
+research-summarize-track workflow.
 
 ---
 
@@ -95,7 +97,7 @@ and a batch of analyses doesn't block on a full re-sort.
 ## Repo layout
 
 ```
-claude-jobhunt-agents/
+agentic-workflow-toolkit/
 ├── README.md                       # this file
 ├── LICENSE                         # MIT
 ├── CHANGELOG.md                    # dated log of changes landed on main

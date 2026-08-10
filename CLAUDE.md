@@ -1,4 +1,4 @@
-# Project instructions — claude-jobhunt-agents
+# Project instructions — agentic-workflow-toolkit
 
 Hard floor rules for EVERY session in this workspace. They apply before and above any skill,
 and they exist because long-running sessions have repeatedly drifted on exactly these points.
