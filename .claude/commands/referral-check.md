@@ -1,5 +1,6 @@
 ---
 description: Referral-track pass — one guest search per referral company (past week), analyze new fits, show the latest/best role per company
+help: 内推线：每家内推公司查过去一周，展示最新/最合适岗位
 ---
 
 Run the REFERRAL track of the `linkedin-sourcing` skill (fully separate from the regular pass).

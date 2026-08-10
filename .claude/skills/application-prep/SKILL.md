@@ -1,6 +1,7 @@
 ---
 name: application-prep
 description: Prep job applications from the ranked scoreboard. Use when the user says "apply to X", "queue up applications", "auto-apply" (legacy name), "draft the answers for X", "fill the form for X", or wants to see which roles to apply to next. Picks roles off job-scoreboard.md, scaffolds a per-job packet, and drafts a review-ready answer sheet you use to fill and submit the ATS form yourself. No automated form-filling or submission — you apply manually.
+help: 申请打包：排队 → 起草 answers.md → 你审阅后手动提交
 ---
 
 # Application Prep (formerly auto-apply)

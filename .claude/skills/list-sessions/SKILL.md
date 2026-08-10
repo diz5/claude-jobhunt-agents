@@ -1,6 +1,7 @@
 ---
 name: list-sessions
 description: List past Claude Code sessions for the current project as a quick summary table — session ID, last-active time, transcript size, and name (the /rename custom title, else the auto-generated title). Use when the user wants to see, list, browse, or summarize related/past sessions for this project.
+help: 列出本项目历史会话速查表
 ---
 
 # List Sessions

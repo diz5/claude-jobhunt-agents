@@ -1,5 +1,6 @@
 ---
 description: Daily LinkedIn sourcing pass — scan all metros (past 24h), dedup, analyze new roles, present the >6 list with apply links
+help: 每日搜岗：扫全 metro 过去 24h → 去重 → 分析 → >6 清单 + apply 链接
 ---
 
 Run the daily job search — the REGULAR metro track of the `linkedin-sourcing` skill.

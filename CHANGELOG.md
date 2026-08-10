@@ -5,7 +5,7 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 the same commit** (the pre-push review covers it).
 
 ## 2026-08-09
-- Add `/job-hunt-help` command — live cheat-sheet of the project's slash commands + skill entry points (scans `.claude/commands/` and skill frontmatter at run time, so it never goes stale).
+- Add `/job-hunt-help` command — live cheat-sheet of the project's slash commands + skill entry points. Table is printed by a deterministic script (`job_hunt_help.py`, relayed verbatim — zero LLM reading/translation per run); each entry point's frontmatter carries an optional Chinese `help:` line the script prefers over the English description. Scans fresh every run, so it never goes stale.
 
 ## 2026-08-08
 - Merge PR #1 (`feature/auto-apply`): linkedin-sourcing skill (guest-search engine + `seen.py` jobId ledger + separate big-tech referral track), auto-apply skill (`apply.py` + `application-drafter` subagent, manual-submit-only), `identity.example.json`, `referral-companies.example.md`, publish-guard updates.

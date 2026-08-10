@@ -71,7 +71,7 @@ and a batch of analyses doesn't block on a full re-sort.
 | `referral-companies.example.md` | Template for your (gitignored) `referral-companies.md` — big-tech companies you can be referred into; drives the referral track. |
 | `.claude/commands/job-search.md` | `/job-search` — one-word trigger for the daily regular-metro sourcing pass. |
 | `.claude/commands/referral-check.md` | `/referral-check` — one-word trigger for the referral-track pass. |
-| `.claude/commands/job-hunt-help.md` | `/job-hunt-help` — live cheat-sheet of this project's commands + skill entry points. |
+| `.claude/commands/job-hunt-help.md` | `/job-hunt-help` — live cheat-sheet of this project's commands + skill entry points (table printed by `job_hunt_help.py`, relayed verbatim). |
 | `.claude/skills/application-prep/SKILL.md` | Application-prep orchestrator (queue → packet → draft → review; the candidate fills + submits the form manually). |
 | `.claude/skills/application-prep/apply.py` | Deterministic apply bookkeeping (CLI: `queue`/`init`/`list`). |
 | `.claude/agents/application-drafter.md` | Subagent that drafts one job's form answers (short, human, grounded) into its packet. |

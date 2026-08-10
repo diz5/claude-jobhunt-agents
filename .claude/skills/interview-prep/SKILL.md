@@ -1,6 +1,7 @@
 ---
 name: interview-prep
 description: Prepare the candidate for interviews at a company — recruiter/HR screen (interactive mock + prep pack) AND technical rounds (OA / coding screen / onsite / system design, powered by recent-面经 research via the interview-intel subagent). Use when the user says "mock interview", "recruiter screen", "prep me for <Company>", "OA prep", "面经", "coding/system-design interview prep". Behavioral-loop deep prep is still a future mode.
+help: 面试准备：HR screen mock + 技术轮（面经驱动）
 ---
 
 # Interview Prep — Recruiter / HR Screen

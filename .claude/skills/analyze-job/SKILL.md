@@ -1,6 +1,7 @@
 ---
 name: analyze-job
 description: Analyze a company/job posting for the candidate's job search, or answer a job-application question. Use when the user pastes a job description or URL, names a company + role, or asks an application question. Produces a concise, evidence-based analysis (company background, prospects, resume fit, industry outlook, career impact, salary-vs-cost-of-living, Glassdoor culture) or a short English application answer.
+help: 单岗/批量分析（⭐ 模板），或答申请题
 ---
 
 # Analyze Job

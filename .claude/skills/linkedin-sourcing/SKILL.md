@@ -1,6 +1,7 @@
 ---
 name: linkedin-sourcing
 description: Source senior-SWE jobs by the candidate's criteria (level + past-24h + target metros), score them against the profile, and surface the ones worth applying to — each with an apply link. Also runs a separate REFERRAL track for big-tech companies the candidate can get referred into. Use when the user says "search LinkedIn", "run my job search", "check for new jobs", "daily job pass", "source jobs", "what's new", "referral companies". Sources via anonymous LinkedIn guest search (server-side, no account risk), dedups every posting in a jobId ledger so re-runs skip what's already seen, analyzes fresh ones with job-analyzer, and presents >6 with an apply URL.
+help: 搜岗 skill 本体（/job-search、/referral-check 是它的快捷方式）
 ---
 
 # LinkedIn Sourcing — the daily multi-metro pass
