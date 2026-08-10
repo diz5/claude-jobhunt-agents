@@ -56,12 +56,14 @@ python3 .claude/skills/linkedin-sourcing/seen.py ingest --metro sanjose -i cards
 `seen.py todo [--metro M]` — postings still `seen` (new since last time). Anything triaged or
 analyzed before is remembered and won't reappear.
 
-### 3 — Triage (read-only)
-Drop the noise, recording each so it never resurfaces:
+### 3 — Triage
+**First run `seen.py board-dedup`** — it deterministically cross-checks every `seen` row against
+the full application history (`job-scoreboard.md` + `_pending.md`): auto-drops same-company+role
+duplicates (even re-posts under a new jobId) and prints a ⚠ line per posting whose company has a
+rejection row (`被拒`/`已挂`/`已拒`) — those are NOT auto-dropped (different role at the same
+company is allowed) but weigh the history in your triage. Never re-implement this check inline.
+Then drop the remaining noise by judgment, recording each so it never resurfaces:
 - Recruiter / staffing / anonymized → `mark --status triaged_out --note "recruiter/anon"`.
-- Already on `job-scoreboard.md` (same company+role, even a re-post under a new id) →
-  `mark --status triaged_out --note "already boarded"`.
-- Rejection cooldown (`被拒`/`已挂`/`已拒` on the board) → don't resurface.
 
 ### 4 — Analyze survivors (+ apply URL)
 One `job-analyzer` per survivor (⭐ template, location-aware). It WebFetches the `view_url` for the JD
@@ -108,6 +110,7 @@ After editing `referral-companies.md`, run `seen.py reflag` to re-flag already-i
 `python3 .claude/skills/linkedin-sourcing/seen.py <op>` (ledger: gitignored `.linkedin-seen.db`):
 - `ingest --metro M [-i FILE|-]` — upsert `[{jobId,title,company,location,posted,viewUrl}]`; stamps `posted`, auto-flags `referral`.
 - `todo [--metro M] [--json]` — new postings needing triage/analysis.
+- `board-dedup [--dry-run]` — auto-triage `seen` rows already on the board/pending (company+role match); ⚠-warns on rejected-company history without dropping.
 - `mark --job-id ID --status {seen,triaged_out,analyzed,applied,skipped} [--score N] [--apply-type {easy_apply,offsite,unknown}] [--apply-url U] [--posted YYYY-MM-DD] [--note ...]`
 - `filter [--metro M] [--status S] [--min-score N] [--referral] [--json]` — query. **Referral review = `--referral --min-score 6`.**
 - `reflag` — re-apply referral flags from the current list. `stats` · `list [--json]`.

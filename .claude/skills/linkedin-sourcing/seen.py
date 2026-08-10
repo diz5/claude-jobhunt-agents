@@ -230,6 +230,85 @@ def op_todo(args):
         print(f"       {r['view_url']}")
 
 
+def _norm_text(s: str) -> str:
+    """Normalize a company/role string for fuzzy matching: lowercase, strip
+    markdown bold stars, punctuation, and collapse whitespace."""
+    s = s.replace("*", "").lower()
+    s = re.sub(r"[^\w\s]", " ", s, flags=re.UNICODE)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def _board_history() -> "list[tuple[str, str, str]]":
+    """Read the candidate's application history — every row of job-scoreboard.md
+    PLUS the staged rows in job-analyses/_pending.md — as (company, role, status)
+    tuples, all normalized. Read-only; never writes either file."""
+    out: list[tuple[str, str, str]] = []
+    for path in (os.path.join(ROOT, "job-scoreboard.md"),
+                 os.path.join(ROOT, "job-analyses", "_pending.md")):
+        if not os.path.exists(path):
+            continue
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                if not line.startswith("|"):
+                    continue
+                c = line.split("|")
+                # board/pending row shape: | 排名 | 公司 | 岗位 | 状态 | 推荐分 | ...
+                if len(c) >= 6 and re.search(r"\d", c[5]):
+                    out.append((_norm_text(c[2]), _norm_text(c[3]), c[4].strip()))
+    return out
+
+
+REJECT_KEYS = ("被拒", "已挂", "已拒")
+
+
+def op_board_dedup(args):
+    """Cross-check every still-'seen' ledger row against the application history.
+
+    - Same company + same role already on the board/pending  → auto-mark
+      triaged_out (note 'already boarded') unless --dry-run.
+    - Same company with a rejection-status row (被拒/已挂/已拒) but a DIFFERENT
+      role → NOT auto-dropped (different role at the same company is allowed);
+      printed as a ⚠ warning line so the triage pass can weigh it.
+    Role match = normalized containment either way (board roles are often
+    abbreviated versions of the posting title).
+    """
+    history = _board_history()
+    if not history:
+        die(f"no board history found under {ROOT}")
+    con = connect(args.db)
+    rows = _rows_to_dicts(con.execute(
+        "SELECT job_id, company, title FROM jobs WHERE status='seen'"))
+    dup_ids, warns = [], []
+    for r in rows:
+        comp, role = _norm_text(r["company"]), _norm_text(r["title"])
+        for b_comp, b_role, b_status in history:
+            if not (comp and b_comp) or (comp not in b_comp and b_comp not in comp):
+                continue
+            if b_role and role and (b_role in role or role in b_role):
+                dup_ids.append((r["job_id"], r["company"], r["title"]))
+                break
+            if any(k in b_status for k in REJECT_KEYS):
+                warns.append((r["job_id"], r["company"], r["title"], b_status))
+    if not args.dry_run:
+        for job_id, _, _ in dup_ids:
+            con.execute(
+                "UPDATE jobs SET status='triaged_out', note='already boarded (board-dedup)', "
+                "last_seen=? WHERE job_id=?", [today(args), job_id])
+        con.commit()
+    verb = "would drop" if args.dry_run else "dropped"
+    print(f"board-dedup: {len(rows)} seen row(s) vs {len(history)} history row(s) — "
+          f"{verb} {len(dup_ids)} duplicate(s)")
+    for job_id, company, title in dup_ids:
+        print(f"  ✂ [{job_id}] {company} — {title}")
+    # de-duplicate warnings per job_id (a company can have several rejected rows)
+    seen_warn = set()
+    for job_id, company, title, b_status in warns:
+        if job_id in seen_warn or job_id in {d[0] for d in dup_ids}:
+            continue
+        seen_warn.add(job_id)
+        print(f"  ⚠ [{job_id}] {company} — {title}  (company has rejection history: {b_status}; different role → analyze allowed)")
+
+
 def op_mark(args):
     if args.status not in STATUSES:
         die(f"--status must be one of {STATUSES}")
@@ -363,6 +442,11 @@ def main():
     td.add_argument("--metro")
     td.add_argument("--json", action="store_true")
     td.set_defaults(fn=op_todo)
+
+    bd = sub.add_parser("board-dedup",
+                        help="auto-triage 'seen' rows already on the scoreboard/pending; warn on rejected companies")
+    bd.add_argument("--dry-run", action="store_true", help="report only, don't mark")
+    bd.set_defaults(fn=op_board_dedup)
 
     mk = sub.add_parser("mark", help="update one posting's disposition")
     mk.add_argument("--job-id", required=True)
