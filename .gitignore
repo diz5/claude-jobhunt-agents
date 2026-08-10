@@ -18,6 +18,7 @@ applications/
 .linkedin-referral.db*
 referral-companies.md
 referral-queue.md
+blocked-companies.md
 
 # Resumes & docs (any format — resume drafts in markdown included)
 *.pdf

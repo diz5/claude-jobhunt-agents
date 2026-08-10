@@ -261,9 +261,27 @@ def _board_history() -> "list[tuple[str, str, str]]":
 REJECT_KEYS = ("被拒", "已挂", "已拒")
 
 
+def blocked_names() -> "list[str]":
+    """Read blocked-companies.md (project root, gitignored): companies the
+    candidate never wants to apply to. Returns normalized names; empty list
+    when the file doesn't exist. Format per line: `Name | note`."""
+    path = os.path.join(ROOT, "blocked-companies.md")
+    names: list[str] = []
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                names.append(_norm_text(line.split("|")[0]))
+    return [n for n in names if n]
+
+
 def op_board_dedup(args):
     """Cross-check every still-'seen' ledger row against the application history.
 
+    - Company on blocked-companies.md (never-apply list) → auto-mark
+      triaged_out (note 'blocked company') unless --dry-run.
     - Same company + same role already on the board/pending  → auto-mark
       triaged_out (note 'already boarded') unless --dry-run.
     - Same company with a rejection-status row (被拒/已挂/已拒) but a DIFFERENT
@@ -275,12 +293,18 @@ def op_board_dedup(args):
     history = _board_history()
     if not history:
         die(f"no board history found under {ROOT}")
+    blocked = blocked_names()
     con = connect(args.db)
     rows = _rows_to_dicts(con.execute(
         "SELECT job_id, company, title FROM jobs WHERE status='seen'"))
-    dup_ids, warns = [], []
+    dup_ids, blocked_ids, warns = [], [], []
     for r in rows:
         comp, role = _norm_text(r["company"]), _norm_text(r["title"])
+        # whole-word match so "citi" hits "Citi"/"Citi Bank" but never "Citizens Bank";
+        # list name variants (Citigroup, Citibank) explicitly in blocked-companies.md
+        if any(re.search(rf"\b{re.escape(b)}\b", comp) for b in blocked):
+            blocked_ids.append((r["job_id"], r["company"], r["title"]))
+            continue
         for b_comp, b_role, b_status in history:
             if not (comp and b_comp) or (comp not in b_comp and b_comp not in comp):
                 continue
@@ -294,12 +318,19 @@ def op_board_dedup(args):
             con.execute(
                 "UPDATE jobs SET status='triaged_out', note='already boarded (board-dedup)', "
                 "last_seen=? WHERE job_id=?", [today(args), job_id])
+        for job_id, _, _ in blocked_ids:
+            con.execute(
+                "UPDATE jobs SET status='triaged_out', note='blocked company (board-dedup)', "
+                "last_seen=? WHERE job_id=?", [today(args), job_id])
         con.commit()
     verb = "would drop" if args.dry_run else "dropped"
-    print(f"board-dedup: {len(rows)} seen row(s) vs {len(history)} history row(s) — "
-          f"{verb} {len(dup_ids)} duplicate(s)")
+    print(f"board-dedup: {len(rows)} seen row(s) vs {len(history)} history row(s) "
+          f"+ {len(blocked)} blocked company(ies) — "
+          f"{verb} {len(dup_ids)} duplicate(s), {len(blocked_ids)} blocked")
     for job_id, company, title in dup_ids:
         print(f"  ✂ [{job_id}] {company} — {title}")
+    for job_id, company, title in blocked_ids:
+        print(f"  🚫 [{job_id}] {company} — {title}  (blocked list)")
     # de-duplicate warnings per job_id (a company can have several rejected rows)
     seen_warn = set()
     for job_id, company, title, b_status in warns:

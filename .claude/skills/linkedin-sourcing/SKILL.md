@@ -58,9 +58,10 @@ analyzed before is remembered and won't reappear.
 
 ### 3 — Triage
 **First run `seen.py board-dedup`** — it deterministically cross-checks every `seen` row against
-the full application history (`job-scoreboard.md` + `_pending.md`): auto-drops same-company+role
-duplicates (even re-posts under a new jobId) and prints a ⚠ line per posting whose company has a
-rejection row (`被拒`/`已挂`/`已拒`) — those are NOT auto-dropped (different role at the same
+the full application history (`job-scoreboard.md` + `_pending.md`) and the never-apply blocklist
+(`blocked-companies.md`, gitignored): auto-drops blocked companies (🚫) and same-company+role
+duplicates (✂, even re-posts under a new jobId), and prints a ⚠ line per posting whose company has
+a rejection row (`被拒`/`已挂`/`已拒`) — those are NOT auto-dropped (different role at the same
 company is allowed) but weigh the history in your triage. Never re-implement this check inline.
 Then drop the remaining noise by judgment, recording each so it never resurfaces:
 - Recruiter / staffing / anonymized → `mark --status triaged_out --note "recruiter/anon"`.
@@ -78,8 +79,11 @@ hook hard-caps WebSearch/WebFetch per agent as the runaway backstop.
 
 ### 5 — Present
 `seen.py filter --status analyzed --min-score 6` — for every role **>6**: its ⭐ analysis + rating +
-apply link (external ATS URL when we have one, else the LinkedIn page). One line each for the rest.
-The candidate applies manually.
+apply link (external ATS URL when we have one, else the LinkedIn page) **+ 📍 the job's location**
+(city + onsite/hybrid/remote if known). Location is a search criterion, so it must be visible at a
+glance in the final list — put it in the scoreboard row's 岗位 column (e.g. `(Seattle)`) AND as a
+`📍` line next to each apply link; never make the candidate open the analysis to find out where the
+job is. One line each for the rest. The candidate applies manually.
 
 ### 6 — Close the loop
 Candidate applies to all by default and **names the skips**. `mark --status applied` / `skipped`.
@@ -110,7 +114,7 @@ After editing `referral-companies.md`, run `seen.py reflag` to re-flag already-i
 `python3 .claude/skills/linkedin-sourcing/seen.py <op>` (ledger: gitignored `.linkedin-seen.db`):
 - `ingest --metro M [-i FILE|-]` — upsert `[{jobId,title,company,location,posted,viewUrl}]`; stamps `posted`, auto-flags `referral`.
 - `todo [--metro M] [--json]` — new postings needing triage/analysis.
-- `board-dedup [--dry-run]` — auto-triage `seen` rows already on the board/pending (company+role match); ⚠-warns on rejected-company history without dropping.
+- `board-dedup [--dry-run]` — auto-triage `seen` rows already on the board/pending (company+role match) and rows from `blocked-companies.md`; ⚠-warns on rejected-company history without dropping.
 - `mark --job-id ID --status {seen,triaged_out,analyzed,applied,skipped} [--score N] [--apply-type {easy_apply,offsite,unknown}] [--apply-url U] [--posted YYYY-MM-DD] [--note ...]`
 - `filter [--metro M] [--status S] [--min-score N] [--referral] [--json]` — query. **Referral review = `--referral --min-score 6`.**
 - `reflag` — re-apply referral flags from the current list. `stats` · `list [--json]`.
