@@ -63,8 +63,23 @@ the full application history (`job-scoreboard.md` + `_pending.md`) and the never
 duplicates (✂, even re-posts under a new jobId), and prints a ⚠ line per posting whose company has
 a rejection row (`被拒`/`已挂`/`已拒`) — those are NOT auto-dropped (different role at the same
 company is allowed) but weigh the history in your triage. Never re-implement this check inline.
-Then drop the remaining noise by judgment, recording each so it never resurfaces:
-- Recruiter / staffing / anonymized → `mark --status triaged_out --note "recruiter/anon"`.
+Then judge the remainder with the **Skip rubric** — every skip is recorded with its rule code
+(`mark --status skipped --note "S<n> <一句原因>"`) so the call is auditable and consistent
+across sessions:
+- **S1 栈硬伤（标题即可判）** — title names a stack from the profile's 🔴 gaps as the role's
+  substance: frontend/fullstack-TS、mobile、Node/Go/Rust/C++ 主栈、embedded、CAD/EDI、
+  Python-expert AI-infra。Title 看不出来的**不许猜** → 留给分析。
+- **S2 猎头/staffing/匿名雇主** → `triaged_out --note "recruiter/anon"`（性质是噪音不是取舍，
+  与 board-dedup 的 🚫/✂ 同级）。
+- **S3 被拒公司** — company has a rejection row AND the new role is not a clearly better fit
+  than what got rejected → skip；明显更契合的新岗可留（同公司他岗另议）。
+- **S4 非目标 metro** — 不在 profile 目标城市带且非 remote（remote 页常混入加州岗）→ skip。
+- **S5 定级错位** — sub-senior（"Engineer II" 等）或 Staff+ 拉伸，且 fit 无过人之处 → skip。
+- **S6 域/公司类型不合** — 需 clearance 的 public-sector、临时岗（LTE）、无差异化小型
+  fullstack startup、candidate 明示回避的行业 → skip。
+- **默认留下**：不确定就分析，skip 必须能写出一句站得住的理由；单轮分析量仍按
+  "confirm scope before large fan-outs" 控制。
+`skipped`（看过、决定不投）与 `triaged_out`（从来不是候选）语义不同，别混用。
 
 ### 4 — Analyze survivors (+ apply URL)
 One `job-analyzer` per survivor (⭐ template, location-aware). It WebFetches the `view_url` for the JD

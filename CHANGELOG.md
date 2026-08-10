@@ -5,6 +5,7 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 the same commit** (the pre-push review covers it).
 
 ## 2026-08-09
+- Skip rubric (SKILL.md triage step): S1 stack-gate-by-title / S2 recruiter / S3 rejected-company / S4 non-target-metro / S5 level-mismatch / S6 domain-mismatch, with rule codes recorded in every `skipped` note — auditable, session-consistent; ambiguous titles default to analyze, never guess-skip.
 - `seen.py digest`: end-of-run full-disposition display (every posting one line, grouped by fate, 📍 location) — the candidate decides everything in one pass; wired into SKILL.md present step as a verbatim relay.
 - Blocklist: gitignored `blocked-companies.md` (never-apply companies; ships `blocked-companies.example.md`) — `board-dedup` auto-drops their postings with whole-word matching. Presentation rule added: every >6 result must show 📍 job location at a glance (location is a search criterion).
 - `seen.py board-dedup`: deterministic cross-check of the todo queue against the full application history (board + pending) — auto-drops same-company+role re-posts, ⚠-warns on rejected-company history (different role stays allowed). Replaces the ad-hoc inline dedup each sourcing session used to improvise; wired into SKILL.md triage step.
