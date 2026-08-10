@@ -4,6 +4,9 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 `git log` gives you, kept human-readable. **Rule: every commit to `main` adds its line here in
 the same commit** (the pre-push review covers it).
 
+## 2026-08-09
+- Add `/job-hunt-help` command — live cheat-sheet of the project's slash commands + skill entry points (scans `.claude/commands/` and skill frontmatter at run time, so it never goes stale).
+
 ## 2026-08-08
 - Merge PR #1 (`feature/auto-apply`): linkedin-sourcing skill (guest-search engine + `seen.py` jobId ledger + separate big-tech referral track), auto-apply skill (`apply.py` + `application-drafter` subagent, manual-submit-only), `identity.example.json`, `referral-companies.example.md`, publish-guard updates.
 - Fix auto-apply SKILL.md Step 0: sourcing is via anonymous LinkedIn guest search (the console snippet is dead for LinkedIn); gitignore `session-helper/archive/`.
