@@ -5,6 +5,7 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 the same commit** (the pre-push review covers it).
 
 ## 2026-08-09
+- `scoreboard.py`: new `--channel autosearch` (自动搜岗) tag — marks applications whose role was found by the linkedin-sourcing pipeline, so pipeline accuracy (auto-sourced vs self-found outcome rates) can be compared later.
 - Add `/job-hunt-help` command — live cheat-sheet of the project's slash commands + skill entry points. Table is printed by a deterministic script (`job_hunt_help.py`, relayed verbatim — zero LLM reading/translation per run); each entry point's frontmatter carries an optional Chinese `help:` line the script prefers over the English description. Scans fresh every run, so it never goes stale.
 
 ## 2026-08-08

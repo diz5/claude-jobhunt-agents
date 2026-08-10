@@ -225,7 +225,8 @@ def _find(lines, company, role):
             if is_row(l) and c in company_cell(l) and r in role_cell(l)]
 
 STATUS_DATE_KEYS = ("已投", "已拒", "已挂", "面试", "Offer")
-CHANNEL_TAGS = {"cold": "冷投", "referral": "内推", "recruiter": "猎头", "inbound": "对方主动"}
+CHANNEL_TAGS = {"cold": "冷投", "referral": "内推", "recruiter": "猎头", "inbound": "对方主动",
+                "autosearch": "自动搜岗"}
 
 def op_status(args):
     val = args.set.strip()
