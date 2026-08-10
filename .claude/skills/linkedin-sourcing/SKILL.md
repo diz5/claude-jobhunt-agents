@@ -83,7 +83,10 @@ apply link (external ATS URL when we have one, else the LinkedIn page) **+ 📍 
 (city + onsite/hybrid/remote if known). Location is a search criterion, so it must be visible at a
 glance in the final list — put it in the scoreboard row's 岗位 column (e.g. `(Seattle)`) AND as a
 `📍` line next to each apply link; never make the candidate open the analysis to find out where the
-job is. One line each for the rest. The candidate applies manually.
+job is. **Then run `seen.py digest` and relay it VERBATIM** — the full one-line-per-posting
+disposition (已投 / ≥6 待投 / <6 / 未分析 / 已剔除+原因), so the candidate sees EVERY posting's
+fate and picks extra analyses in the same pass — never make them apply, ask "what else was there",
+and apply again. The candidate applies manually.
 
 ### 6 — Close the loop
 Candidate applies to all by default and **names the skips**. `mark --status applied` / `skipped`.
@@ -115,6 +118,7 @@ After editing `referral-companies.md`, run `seen.py reflag` to re-flag already-i
 - `ingest --metro M [-i FILE|-]` — upsert `[{jobId,title,company,location,posted,viewUrl}]`; stamps `posted`, auto-flags `referral`.
 - `todo [--metro M] [--json]` — new postings needing triage/analysis.
 - `board-dedup [--dry-run]` — auto-triage `seen` rows already on the board/pending (company+role match) and rows from `blocked-companies.md`; ⚠-warns on rejected-company history without dropping.
+- `digest` — end-of-run display: every posting one line, grouped 已投/≥6待投/<6/未分析/已剔除(+原因), each with 📍 location. Relay verbatim.
 - `mark --job-id ID --status {seen,triaged_out,analyzed,applied,skipped} [--score N] [--apply-type {easy_apply,offsite,unknown}] [--apply-url U] [--posted YYYY-MM-DD] [--note ...]`
 - `filter [--metro M] [--status S] [--min-score N] [--referral] [--json]` — query. **Referral review = `--referral --min-score 6`.**
 - `reflag` — re-apply referral flags from the current list. `stats` · `list [--json]`.

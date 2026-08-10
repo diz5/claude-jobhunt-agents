@@ -340,6 +340,64 @@ def op_board_dedup(args):
         print(f"  ⚠ [{job_id}] {company} — {title}  (company has rejection history: {b_status}; different role → analyze allowed)")
 
 
+def op_digest(args):
+    """One-glance disposition of the WHOLE ledger run — every posting, one line,
+    grouped: analyzed ≥6 (with 📍 + apply link) → analyzed <6 → still-'seen'
+    (not yet analyzed; the pool to pick extra analyses from) → triaged_out
+    (with reason). This is the end-of-run display: the candidate decides in ONE
+    pass instead of apply → ask for more → apply again."""
+    con = connect(args.db)
+    rows = _rows_to_dicts(con.execute(
+        "SELECT job_id, company, title, card_loc, metros, score, status, note, "
+        "apply_type, apply_url, view_url FROM jobs ORDER BY "
+        "CASE status WHEN 'analyzed' THEN 0 WHEN 'applied' THEN 1 WHEN 'seen' THEN 2 "
+        "WHEN 'skipped' THEN 3 ELSE 4 END, score DESC NULLS LAST, company"))
+    hi = [r for r in rows if r["status"] == "analyzed" and (r["score"] or 0) >= 6]
+    ap = [r for r in rows if r["status"] == "applied"]
+    lo = [r for r in rows if r["status"] == "analyzed" and (r["score"] or 0) < 6]
+    sn = [r for r in rows if r["status"] == "seen"]
+    sk = [r for r in rows if r["status"] == "skipped"]
+    to = [r for r in rows if r["status"] == "triaged_out"]
+
+    def line(r, mark):
+        loc = r["card_loc"] or r["metros"]
+        s = f"  {mark} [{r['job_id']}] {r['company']} — {r['title']}  📍{loc}"
+        if r["score"] is not None:
+            s += f"  ⭐{r['score']:g}"
+        return s
+
+    print(f"📊 台账全量处置（{len(rows)} 条）")
+    if ap:
+        print(f"\n✅ 已投（{len(ap)}）")
+        for r in ap:
+            print(line(r, "✅"))
+    if hi:
+        print(f"\n⭐ 已分析 ≥6，待投（{len(hi)}）")
+        for r in hi:
+            print(line(r, "⭐"))
+            print(f"       apply: {best_url(r)}")
+    if lo:
+        print(f"\n❌ 已分析 <6，不入榜（{len(lo)}）")
+        for r in lo:
+            print(line(r, "❌"))
+    if sn:
+        print(f"\n👀 未分析（{len(sn)}）— 想补分析的从这里点名")
+        for r in sn:
+            print(line(r, "•"))
+    if sk:
+        print(f"\n⏭ 主动跳过（{len(sk)}）")
+        for r in sk:
+            print(line(r, "⏭"))
+    if to:
+        reasons = {}
+        for r in to:
+            reasons.setdefault(r["note"] or "(no note)", []).append(r)
+        print(f"\n🗑 已剔除（{len(to)}）")
+        for note, rs in sorted(reasons.items(), key=lambda kv: -len(kv[1])):
+            names = "、".join(f"{r['company']}" for r in rs)
+            print(f"  {len(rs)} × {note}: {names}")
+
+
 def op_mark(args):
     if args.status not in STATUSES:
         die(f"--status must be one of {STATUSES}")
@@ -478,6 +536,9 @@ def main():
                         help="auto-triage 'seen' rows already on the scoreboard/pending; warn on rejected companies")
     bd.add_argument("--dry-run", action="store_true", help="report only, don't mark")
     bd.set_defaults(fn=op_board_dedup)
+
+    dg = sub.add_parser("digest", help="one-glance disposition of every posting, grouped by status")
+    dg.set_defaults(fn=op_digest)
 
     mk = sub.add_parser("mark", help="update one posting's disposition")
     mk.add_argument("--job-id", required=True)
