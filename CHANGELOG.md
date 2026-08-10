@@ -5,6 +5,7 @@ Dated log of what landed on `main`, newest first. One line per change — the "w
 the same commit** (the pre-push review covers it).
 
 ## 2026-08-09
+- GitHub Pages enabled from `/docs` — the design page is live at diz5.github.io/agentic-workflow-toolkit/design.html; linked from README's Architecture section.
 - **Repo renamed `claude-jobhunt-agents` → `agentic-workflow-toolkit`** and README reframed: the project presents as an agentic-workflow toolkit for Claude Code, with job-search as its reference domain (GitHub redirects the old URL).
 - Skip rubric (SKILL.md triage step): S1 stack-gate-by-title / S2 recruiter / S3 rejected-company / S4 non-target-metro / S5 level-mismatch / S6 domain-mismatch, with rule codes recorded in every `skipped` note — auditable, session-consistent; ambiguous titles default to analyze, never guess-skip.
 - `seen.py digest`: end-of-run full-disposition display (every posting one line, grouped by fate, 📍 location) — the candidate decides everything in one pass; wired into SKILL.md present step as a verbatim relay.

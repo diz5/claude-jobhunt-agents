@@ -30,6 +30,9 @@ Paste a job description (or a company + role). The system:
 
 ## Architecture
 
+**📐 Interactive design page: [diz5.github.io/agentic-workflow-toolkit/design.html](https://diz5.github.io/agentic-workflow-toolkit/design.html)** — the full
+system map (agents, skills, hooks, data flow) rendered as a browsable page.
+
 ```
 🧠 main agent (orchestrator)         reads the skill, delegates, talks to you
 ├── 📖 analyze-job (skill)           the playbook: dedup, analyze, batch, answer, status
