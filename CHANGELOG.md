@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-08-11
+- Privacy sweep (semantic layer, publish-guard agent): scrub real company names tied to the author's application history from tracked tooling docs — scoring-precedent citation and example scoreboard row / filename examples now use fictional companies.
+
 Dated log of what landed on `main`, newest first. One line per change — the "what/when" a
 `git log` gives you, kept human-readable. **Rule: every commit to `main` adds its line here in
 the same commit** (the pre-push review covers it).

@@ -79,7 +79,7 @@ Do all the research first (internally), then render the analysis in EXACTLY this
 Hard rules for the template:
 - **推荐分是 FIT-GATED，不是三个子分的平均。** 推荐分锚定在 **履历适配度** 上；薪资和公司只能微调，**绝不能把差 fit 的岗位救上榜**。这是求职——一个薪资很高但栈错位（候选人过不了技术关）的岗位价值≈0，不是 7 分。
   - 履历适配度先算，**主导项是技术栈匹配**：候选人生产环境没有的栈（见 `profile.local.md` 的 🔴/gaps——如 TS/全栈、.NET、mobile、Go/Rust、profile 标零经验或硬要求的云）**把履历适配度压低**，叙事/领域/文化/SRE 流程的重合**不能**把它拉回门槛之上。
-  - **栈错位分两档，按 JD 原文措辞判定**（Proofpoint 判例，2026-08）：**硬语言关** = 该语言是岗位主栈/代码库主体，或 JD 写 "deep/strong proficiency"、"8+ yrs <lang>"、岗位名就是该栈（如 Haskell 主栈、"strong Go proficiency"、Node/React 全栈岗）→ 照上一条压低适配度。**软语言项** = JD 只要 "working knowledge"/次要工具级、或明示 AI-assisted 编码即可，且岗位真正的筛选主体是别的能力（agent 架构、领域专长等）→ **不按栈错位 gate**，最多 −0.5~1，适配度主导项改为该岗真实的筛选主体。拿不准措辞档位时从严按硬档算。AI/agentic 契合（日常 AI 编码工具、生产级 applied-LLM、agent 工具——profile 标的顶级 🟢）是**同级正向项，命中时抬高履历适配度**；缺席不扣分。
+  - **栈错位分两档，按 JD 原文措辞判定**（真实判例，2026-08）：**硬语言关** = 该语言是岗位主栈/代码库主体，或 JD 写 "deep/strong proficiency"、"8+ yrs <lang>"、岗位名就是该栈（如 Haskell 主栈、"strong Go proficiency"、Node/React 全栈岗）→ 照上一条压低适配度。**软语言项** = JD 只要 "working knowledge"/次要工具级、或明示 AI-assisted 编码即可，且岗位真正的筛选主体是别的能力（agent 架构、领域专长等）→ **不按栈错位 gate**，最多 −0.5~1，适配度主导项改为该岗真实的筛选主体。拿不准措辞档位时从严按硬档算。AI/agentic 契合（日常 AI 编码工具、生产级 applied-LLM、agent 工具——profile 标的顶级 🟢）是**同级正向项，命中时抬高履历适配度**；缺席不扣分。
   - **履历适配度 < 6 → 推荐分 = 履历适配度，薪资/公司不加分。**（实例：一个高薪、口碑好、但栈错位的 SRE 岗——全栈 TypeScript + 强制 AWS——履历适配度 5.5 → 推荐分 **5.5**，不入榜，哪怕薪资远超基准、Glassdoor 分很高。）
   - **履历适配度 ≥ 6 → 推荐分 = 履历适配度为锚，薪资+公司合计最多 ~±1 微调。** Fit 主导，薪资次要，公司再次要。
   - **公司拆成两个相反的力**：公司**风险**（裁员/衰退/外资母体美国团队自治度）是小幅**下调**；公司**档次/热度**（BigTech、热门且资金充足的 AI——见 profile 的目标）是小幅**上抬**。别把两者混成一个笼统分。

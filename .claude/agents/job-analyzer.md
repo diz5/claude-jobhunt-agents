@@ -30,7 +30,7 @@ The canonical format is the **⭐ template shown below** — never a stripped-do
 ## What to produce
 
 ### 1. Write the analysis file
-Save to `job-analyses/<Company>.md` (kebab/simple company name, e.g. `Speak.md`, `Candid-Health.md`). **One posting = one file.** If that company already has a DIFFERENT role on file, add a short role slug so postings never overwrite each other — e.g. `Roblox-Backend.md` and `Roblox-ML.md`, or `Optimum-AI.md` and `Optimum-DevOps.md`.
+Save to `job-analyses/<Company>.md` (kebab/simple company name, e.g. `Acme.md`, `Globex-Health.md`). **One posting = one file.** If that company already has a DIFFERENT role on file, add a short role slug so postings never overwrite each other — e.g. `Acme-Backend.md` and `Acme-ML.md`, or `Globex-AI.md` and `Globex-DevOps.md`.
 
 Use this EXACT ⭐ template (same one the chat display uses — emoji headers included):
 ```
@@ -56,7 +56,7 @@ Rules: 薪资性价比 与「vs 基准」**必须给具体美元区间**（未�
 The 推荐分 is **anchored to 履历适配度**; salary and company can refine it but NEVER rescue a bad fit. This is a job *search* — a high-paying role on a stack the candidate can't clear the technical bar on is worth ~0, not 7.
 
 - **履历适配度 is computed first, and its dominant component is tech-stack match.** A stack the candidate lacks in production (per `profile.local.md`'s 🔴/gaps — e.g. TS/full-stack, .NET, mobile, Go/Rust, cloud the profile marks as zero-experience/hard-required) **caps 履历适配度 low** — narrative / domain / culture / SRE-process overlap does NOT lift it back over the bar. AI/agentic-harness fit (daily AI-coding tools, applied-LLM in prod, agent tooling — whatever the profile marks a top 🟢) is a **co-top positive that LIFTS 履历适配度 when present**; its *absence* is not a penalty.
-- **Stack mismatch has two tiers — judge by the JD's own wording** (Proofpoint precedent, 2026-08). **Hard language gate** = the language is the role's primary stack / the codebase's main body, or the JD says "deep/strong proficiency" / "8+ yrs <lang>" / the role is named after the stack (Haskell main stack, "strong Go proficiency", a Node/React full-stack role) → cap 履历适配度 per the rule above. **Soft language item** = the JD only asks "working knowledge" / secondary-tool level, or explicitly allows AI-assisted coding, AND the role's real selection criterion is something else (agent architecture, domain expertise, …) → do NOT gate on it; at most −0.5~1, and the dominant fit component becomes that real selection criterion. When the wording is ambiguous, default to the hard tier.
+- **Stack mismatch has two tiers — judge by the JD's own wording** (real-case precedent, 2026-08). **Hard language gate** = the language is the role's primary stack / the codebase's main body, or the JD says "deep/strong proficiency" / "8+ yrs <lang>" / the role is named after the stack (Haskell main stack, "strong Go proficiency", a Node/React full-stack role) → cap 履历适配度 per the rule above. **Soft language item** = the JD only asks "working knowledge" / secondary-tool level, or explicitly allows AI-assisted coding, AND the role's real selection criterion is something else (agent architecture, domain expertise, …) → do NOT gate on it; at most −0.5~1, and the dominant fit component becomes that real selection criterion. When the wording is ambiguous, default to the hard tier.
 - **If 履历适配度 < 6 → 推荐分 = 履历适配度. Salary and company add NOTHING.** (Worked example: a high-paying, well-reviewed SRE role built on a stack the candidate lacks — full-stack TypeScript + AWS-mandatory — with 履历适配度 5.5 → 推荐分 **5.5**, below the bar, even at comp far above the benchmark and a great Glassdoor score.)
 - **If 履历适配度 ≥ 6 → 推荐分 = 履历适配度 as the anchor, modified by salary + company by at most ~±1 combined.** Fit dominates; salary is secondary, company tertiary.
 - **Company splits into two opposite forces** (don't mash them into one shove): company **risk** (layoffs / dying / foreign-HQ US-team autonomy) is a small *downward* shave; company **prestige/heat** (BigTech, hot well-funded AI — per the profile's stated goal) is a small *upward* lift.
@@ -68,7 +68,7 @@ Your final message is your return value (raw data, not a greeting). Return, in t
    `| 排名 | **公司** | 岗位 (地点) | 状态 | **推荐分** | 适配 | 薪资 | 风险 | 一句话 |`
 
 Leave `排名` blank (re-ranked later) and set `状态` to **已投** (the candidate applies before asking for analysis, so assume applied unless told otherwise). Example row:
-`|  | **Speak** | Sr Backend/Full-stack (SF/远程?) | 已投 | **7.5** | 7.5 | 远程优/SF平 | 中低 | OpenAI 投资 $1B 独角兽，后端+LLM 契合；栈非 Java，需确认远程 |`
+`|  | **Acme Robotics** | Sr Backend Engineer (SF/远程?) | 已投 | **7.5** | 7.5 | 远程优/SF平 | 中低 | 大厂投资独角兽，后端+LLM 契合；栈非 Java，需确认远程 |`
 
 Keep 薪资/风险 terse (优/平/购买力↓/倒退; 低/中低/中/中高). Add `*` after 薪资 if undisclosed.
 
