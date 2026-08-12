@@ -59,10 +59,13 @@ analyzed before is remembered and won't reappear.
 ### 3 — Triage
 **First run `seen.py board-dedup`** — it deterministically cross-checks every `seen` row against
 the full application history (`job-scoreboard.md` + `_pending.md`) and the never-apply blocklist
-(`blocked-companies.md`, gitignored): auto-drops blocked companies (🚫) and same-company+role
-duplicates (✂, even re-posts under a new jobId), and prints a ⚠ line per posting whose company has
-a rejection row (`被拒`/`已挂`/`已拒`) — those are NOT auto-dropped (different role at the same
-company is allowed) but weigh the history in your triage. Never re-implement this check inline.
+(`blocked-companies.md`, gitignored): auto-drops blocked companies (🚫), same-company+role
+duplicates (✂, even re-posts under a new jobId), and **multi-applied companies (✋ — the company
+already has ≥2 prior applications** — `已投`/`面试`/`Offer` or rejected (a rejection means he
+applied) — **the candidate won't stack more (rule 2026-08-11); resurrect one only
+if it's clearly a better fit than what he applied to)**, and prints a ⚠ line per posting whose company has a rejection row (`被拒`/`已挂`/`已拒`) —
+those are NOT auto-dropped (different role at the same company is allowed) but weigh the history
+in your triage. Never re-implement this check inline.
 Then judge the remainder with the **Skip rubric** — every skip is recorded with its rule code
 (`mark --status skipped --note "S<n> <一句原因>"`) so the call is auditable and consistent
 across sessions:
@@ -133,7 +136,9 @@ After editing `referral-companies.md`, run `seen.py reflag` to re-flag already-i
 - `ingest --metro M [-i FILE|-]` — upsert `[{jobId,title,company,location,posted,viewUrl}]`; stamps `posted`, auto-flags `referral`.
 - `todo [--metro M] [--json]` — new postings needing triage/analysis.
 - `board-dedup [--dry-run]` — auto-triage `seen` rows already on the board/pending (company+role match) and rows from `blocked-companies.md`; ⚠-warns on rejected-company history without dropping.
-- `digest` — end-of-run display: every posting one line, grouped 已投/≥6待投/<6/未分析/已剔除(+原因), each with 📍 location. Relay verbatim.
+- `digest` — end-of-run display: every posting one line, grouped 已投(count only, no rows —
+  the candidate doesn't want his application history replayed)/≥6待投/<6/未分析/已剔除(+原因),
+  each with 📍 location. Relay verbatim.
 - `mark --job-id ID --status {seen,triaged_out,analyzed,applied,skipped} [--score N] [--apply-type {easy_apply,offsite,unknown}] [--apply-url U] [--posted YYYY-MM-DD] [--note ...]`
 - `filter [--metro M] [--status S] [--min-score N] [--referral] [--json]` — query. **Referral review = `--referral --min-score 6`.**
 - `reflag` — re-apply referral flags from the current list. `stats` · `list [--json]`.

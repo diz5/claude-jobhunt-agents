@@ -259,6 +259,7 @@ def _board_history() -> "list[tuple[str, str, str]]":
 
 
 REJECT_KEYS = ("被拒", "已挂", "已拒")
+APPLIED_KEYS = ("已投", "面试", "Offer")
 
 
 def blocked_names() -> "list[str]":
@@ -284,6 +285,12 @@ def op_board_dedup(args):
       triaged_out (note 'blocked company') unless --dry-run.
     - Same company + same role already on the board/pending  → auto-mark
       triaged_out (note 'already boarded') unless --dry-run.
+    - Company with >= 2 prior applications (status contains 已投/面试/Offer or
+      a rejection marker — a rejection means he applied) → auto-mark
+      triaged_out (note 'multi-applied company'): the candidate won't stack
+      more applications on a company he already covered (candidate rule,
+      2026-08-11). Printed as ✋ lines so the triage pass can resurrect one
+      that is clearly a better fit.
     - Same company with a rejection-status row (被拒/已挂/已拒) but a DIFFERENT
       role → NOT auto-dropped (different role at the same company is allowed);
       printed as a ⚠ warning line so the triage pass can weigh it.
@@ -294,10 +301,17 @@ def op_board_dedup(args):
     if not history:
         die(f"no board history found under {ROOT}")
     blocked = blocked_names()
+    # prior applications per company — ANY application evidence counts
+    # (applied/interviewing/offer AND rejected: a rejection means he applied);
+    # >= 2 means the candidate already covered this company — drop new postings
+    applied_counts: dict[str, int] = {}
+    for b_comp, _b_role, b_status in history:
+        if any(k in b_status for k in APPLIED_KEYS + REJECT_KEYS):
+            applied_counts[b_comp] = applied_counts.get(b_comp, 0) + 1
     con = connect(args.db)
     rows = _rows_to_dicts(con.execute(
         "SELECT job_id, company, title FROM jobs WHERE status='seen'"))
-    dup_ids, blocked_ids, warns = [], [], []
+    dup_ids, blocked_ids, multi_ids, warns = [], [], [], []
     for r in rows:
         comp, role = _norm_text(r["company"]), _norm_text(r["title"])
         # whole-word match so "citi" hits "Citi"/"Citi Bank" but never "Citizens Bank";
@@ -305,14 +319,22 @@ def op_board_dedup(args):
         if any(re.search(rf"\b{re.escape(b)}\b", comp) for b in blocked):
             blocked_ids.append((r["job_id"], r["company"], r["title"]))
             continue
+        is_dup = False
         for b_comp, b_role, b_status in history:
             if not (comp and b_comp) or (comp not in b_comp and b_comp not in comp):
                 continue
             if b_role and role and (b_role in role or role in b_role):
                 dup_ids.append((r["job_id"], r["company"], r["title"]))
+                is_dup = True
                 break
             if any(k in b_status for k in REJECT_KEYS):
                 warns.append((r["job_id"], r["company"], r["title"], b_status))
+        if is_dup:
+            continue
+        n_live = max((n for b_comp, n in applied_counts.items()
+                      if comp and (comp in b_comp or b_comp in comp)), default=0)
+        if n_live >= 2:
+            multi_ids.append((r["job_id"], r["company"], r["title"], n_live))
     if not args.dry_run:
         for job_id, _, _ in dup_ids:
             con.execute(
@@ -322,15 +344,22 @@ def op_board_dedup(args):
             con.execute(
                 "UPDATE jobs SET status='triaged_out', note='blocked company (board-dedup)', "
                 "last_seen=? WHERE job_id=?", [today(args), job_id])
+        for job_id, _, _, _ in multi_ids:
+            con.execute(
+                "UPDATE jobs SET status='triaged_out', note='multi-applied company (board-dedup)', "
+                "last_seen=? WHERE job_id=?", [today(args), job_id])
         con.commit()
     verb = "would drop" if args.dry_run else "dropped"
     print(f"board-dedup: {len(rows)} seen row(s) vs {len(history)} history row(s) "
           f"+ {len(blocked)} blocked company(ies) — "
-          f"{verb} {len(dup_ids)} duplicate(s), {len(blocked_ids)} blocked")
+          f"{verb} {len(dup_ids)} duplicate(s), {len(blocked_ids)} blocked, "
+          f"{len(multi_ids)} multi-applied")
     for job_id, company, title in dup_ids:
         print(f"  ✂ [{job_id}] {company} — {title}")
     for job_id, company, title in blocked_ids:
         print(f"  🚫 [{job_id}] {company} — {title}  (blocked list)")
+    for job_id, company, title, n_live in multi_ids:
+        print(f"  ✋ [{job_id}] {company} — {title}  (already {n_live} live application(s) at this company; resurrect only if clearly better fit)")
     # de-duplicate warnings per job_id (a company can have several rejected rows)
     seen_warn = set()
     for job_id, company, title, b_status in warns:
@@ -368,9 +397,9 @@ def op_digest(args):
 
     print(f"📊 台账全量处置（{len(rows)} 条）")
     if ap:
-        print(f"\n✅ 已投（{len(ap)}）")
-        for r in ap:
-            print(line(r, "✅"))
+        # count only — the candidate knows what he applied to; the digest's job
+        # is the decision list (>=6 待投), not an application-history replay
+        print(f"\n✅ 已投（{len(ap)}）— 明细略")
     if hi:
         print(f"\n⭐ 已分析 ≥6，待投（{len(hi)}）")
         for r in hi:
