@@ -34,6 +34,11 @@ DEST="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Backup/dev-mirror"   # 
 
 mkdir -p "$DEST"
 
+# If you use the dual-repo model (pgit.sh — a local-only personal git layer),
+# take a version snapshot before mirroring; the .personal-git history rides
+# along into the cloud mirror as off-site disaster recovery.
+# "$SRC_ROOT/<your-workspace>/pgit.sh" snapshot || true
+
 for repo in "${REPOS[@]}"; do
   src="$SRC_ROOT/$repo"
   [ -d "$src" ] || continue

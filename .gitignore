@@ -27,6 +27,10 @@ blocked-companies.md
 *[Rr]esume*
 old-resume/
 
+# Personal git layer (dual-repo model: .personal-git versions the personal data
+# above, locally only, no remote — see pgit.sh)
+.personal-git/
+
 # Local settings & session logs (contain paths + researched companies)
 .claude/settings.local.json
 session-helper/session-info.md

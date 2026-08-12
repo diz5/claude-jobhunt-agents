@@ -22,6 +22,7 @@ REQUIRED_IGNORES = [
     "profile.local.md", ".secrets.local", "job-scoreboard.md", "job-analyses/",
     "application-kit.md", "applications/", ".linkedin-seen.db", "referral-companies.md",
     ".claude/settings.local.json", "*.pdf", "*.docx",
+    ".personal-git/", ".board-state.json", "blocked-companies.md",
 ]
 
 GENERIC_PATTERNS = [

@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-08-11
+- **Dual-repo model**: new `pgit.sh` — a second, local-only git layer (`.personal-git/`, no remote, gitignored) that versions the personal data files (board, analyses, profile, ledgers) via scoped force-add snapshots; wired into the nightly backup so history rides into the cloud mirror. `publish_guard.py` REQUIRED_IGNORES extended (`.personal-git/`, `.board-state.json`, `blocked-companies.md`).
 - Privacy sweep (semantic layer, publish-guard agent): scrub real company names tied to the author's application history from tracked tooling docs — scoring-precedent citation and example scoreboard row / filename examples now use fictional companies.
 
 Dated log of what landed on `main`, newest first. One line per change — the "what/when" a

@@ -172,7 +172,10 @@ Personal data is never committed — it lives in gitignored local files:
 
 ## Privacy
 
-Personal data lives **outside git**, and a guard proves it before anything ships:
+Personal data lives **outside the public git**, and a guard proves it before anything ships.
+For versioning that personal data anyway, the workspace runs a **dual-repo model**: a second
+local-only git layer ([`pgit.sh`](pgit.sh) → `.personal-git/`, itself gitignored, **no remote**)
+snapshots the personal files — rollback and audit without any possibility of pushing them.
 
 - **Gitignored (local only):** `profile.local.md`, `job-scoreboard.md`, `job-analyses/`,
   `application-kit.md`, `applications/` (per-job packets + `identity.json`), résumés,
